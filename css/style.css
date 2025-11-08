@@ -374,3 +374,29 @@ body {
 .close{
     display: none;
 }
+
+/* changed*/
+
+.hamburger{
+    display: none;
+}
+.hamburgerContainer{
+    display: none; 
+}
+.close{
+    display: none;
+}
+
+
+@media (max-width: 1200px) {
+    /* ... existing mobile styles ... */
+    
+    .hamburgerContainer {
+      /* Corrected to flex for centering image inside */
+      display: flex; 
+    }
+    .close {
+      display: block; 
+      /* ... rest of close positioning ... */
+    }
+}
