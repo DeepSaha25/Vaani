@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+MX+Guides&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Playwrite+MX+Guides&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sixtyfour&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
 * {
   margin: 0;
   padding: 0;
@@ -29,10 +32,22 @@ body {
   flex-direction: column;
   gap: 8px; /* Space between home/library blocks */
 }
-.logo img {
-  width: 110px;
+.logo{
+  display: flex;
+  gap:5px ;
 }
-
+.logo img {
+  width: 50px;
+}
+.logo p{
+ position: relative;
+ font-family: "Sixtyfour", sans-serif;
+    font-size: small;
+    font-weight: bolder;
+}
+.logo p {
+    top: 20px;
+}
 .home {
   padding: 10px; /* Added padding here */
 }
@@ -211,8 +226,9 @@ body {
   /* Removed padding */
 }
 .welcome h2 {
-  font-size: 18px; /* Made it a bit smaller for the header */
+  font-size px; /* Made it a bit smaller for the header */
   margin-bottom: 0;
+  font-family: "Indie Flower", cursive;
   font-weight: 500;
 }
 /* ADDED: Style for the new <p> tag */
@@ -227,7 +243,14 @@ body {
   padding: 20px;
 }
 .spotifyPlaylists h1 {
-  font-size: 20px;
+  font-family: "Playwrite MX Guides", cursive;
+    font-size: 25px;
+    font-weight: 500;
+  
+}
+.spotifyPlaylists h2 {
+ font-family: "Dancing Script", cursive;
+  font-size:20px;
   margin-bottom: 15px;
 }
 .cardContainer {
