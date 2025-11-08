@@ -258,5 +258,80 @@ async function main() {
     })
 
 }
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Get references to the main responsive elements
+    const leftSidebar = document.querySelector(".left");
+    const hamburger = document.querySelector(".hamburgerContainer img");
+    const closeBtn = document.querySelector(".close img");
+    
+    // Playback Controls
+    const playButton = document.getElementById("play");
 
+    // 2. Sidebar Navigation Logic (for mobile view < 1200px)
+    if (hamburger) {
+        // Open the sidebar when the hamburger is clicked
+        hamburger.addEventListener("click", () => {
+            // This style overrides the 'left: -120%' set in the media query
+            leftSidebar.style.left = "0%";
+            console.log("Sidebar opened.");
+        });
+    }
+
+    if (closeBtn) {
+        // Close the sidebar when the close button is clicked
+        closeBtn.addEventListener("click", () => {
+            leftSidebar.style.left = "-120%"; // Hides it back off-screen
+            console.log("Sidebar closed.");
+        });
+    }
+
+    // 3. Playback Placeholder Logic
+    if (playButton) {
+        playButton.addEventListener("click", () => {
+            // A simple placeholder toggle for now
+            const isPlaying = playButton.src.includes("pause.svg");
+
+            if (isPlaying) {
+                // If it's currently showing pause, change to play
+                playButton.src = "img/play.svg";
+                console.log("Paused.");
+            } else {
+                // If it's currently showing play, change to pause
+                // Note: You need a 'pause.svg' image for this to fully work.
+                // Assuming 'img/pause.svg' exists for this logic:
+                playButton.src = "img/pause.svg"; 
+                console.log("Playing...");
+            }
+        });
+    }
+
+    // Placeholder function to load songs, often triggered by clicking a playlist
+    function loadSongs(playlistName) {
+        console.log(`Loading songs for: ${playlistName}`);
+        // In a real application, AJAX fetch call goes here to load song data.
+        
+        const songListUl = document.querySelector(".songList ul");
+        songListUl.innerHTML = `
+            <li>
+                <div class="info"><div>Song 1 (${playlistName})</div><div>Artist A</div></div>
+                <div class="playnow"><span>Play Now</span><img class="invert" src="img/play.svg" alt=""></div>
+            </li>
+            <li>
+                <div class="info"><div>Song 2 (${playlistName})</div><div>Artist B</div></div>
+                <div class="playnow"><span>Play Now</span><img class="invert" src="img/play.svg" alt=""></div>
+            </li>
+        `;
+    }
+
+    // Trigger song loading for demonstration (e.g., click on a library card)
+    document.querySelectorAll(".lib-card").forEach(card => {
+        card.addEventListener("click", (e) => {
+            const title = card.querySelector("h3").textContent;
+            loadSongs(title);
+        });
+    });
+    
+    // Initial call to populate the song list on load
+    loadSongs("Default Playlist"); 
+});
 main()
