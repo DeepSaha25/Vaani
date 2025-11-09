@@ -373,6 +373,53 @@ body {
   cursor: pointer;
   accent-color: #1ed760; /* Style the slider */
 }
+/* --- Animation for Album Play Button --- */
+
+/* 1. Make the card a positioning anchor. */
+.card {
+  position: relative; 
+}
+
+/* 2. Style the play button itself (the green circle) */
+.card .play {
+  /* Positioning */
+  position: absolute;
+  right: 18px;  /* 18px from the right edge */
+  bottom: 18px; /* 18px from the bottom edge */
+  z-index: 2;     /* Ensures it's on top of the image */
+
+  /* Appearance */
+  width: 48px;
+  height: 48px;
+  background-color: #bf566d; /* Spotify Green */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Initial State (Hidden & slightly down) */
+  opacity: 0;
+  transform: translateY(15px); /* Start 15px lower */
+  
+  /* Animation Effect */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 3. Style the black SVG triangle inside the green circle */
+.card .play svg {
+  width: 20px;
+  height: 20px;
+}
+.card .play svg path {
+  fill: #000;   /* Black triangle */
+  stroke: #000; /* Black triangle border */
+}
+
+/* 4. This is the HOVER effect */
+.card:hover .play {
+  opacity: 1;               /* Make it visible */
+  transform: translateY(0); /* Move it up to its final position */
+}
 
 /* --- RESPONSIVE --- */
 
