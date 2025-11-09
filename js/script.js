@@ -3,7 +3,21 @@ let currentSong = new Audio();
 let songs;
 let currFolder;
 let lastVolume = 1.0;
+function setDynamicGreeting() {
+    const greetingElement = document.getElementById('greeting');
+    const currentHour = new Date().getHours();
+    let greetingText = "Good morning";
 
+    if (currentHour >= 12 && currentHour < 18) {
+        greetingText = "Good afternoon";
+    } else if (currentHour >= 18) {
+        greetingText = "Good evening";
+    }
+
+    if (greetingElement) {
+        greetingElement.textContent = greetingText;
+    }
+}
 const folderSongs = {
     "Kiliye Kiliye": ["Kiliye Kiliye.mp3"],
     "O mere Dil ke": ["O mere dil ke chain.mp3"],
@@ -137,6 +151,7 @@ async function displayAlbums() {
 }
 
 async function main() {
+    setDynamicGreeting();
     await getSongs("songs/Kiliye Kiliye");
     if (songs.length > 0) playMusic(songs[0], true);
     else playMusic(undefined, true);
