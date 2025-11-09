@@ -3,6 +3,13 @@ let currentSong = new Audio();
 let songs;
 let currFolder;
 let lastVolume = 1.0;
+let likedSongs = []; // --- NEW: Array to store liked songs ---
+
+// --- NEW: SVG path data for the heart icons ---
+const heartOutlinePath = "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z";
+const heartFilledPath = "M12 21.23l-1.06-1.06a5.5 5.5 0 0 1-7.78-7.78l1.06-1.06L12 5.67l1.06-1.06a5.5 5.5 0 0 1 7.78 7.78l-1.06 1.06L12 21.23z";
+
+
 function setDynamicGreeting() {
     const greetingElement = document.getElementById('greeting');
     const currentHour = new Date().getHours();
@@ -47,11 +54,25 @@ function secondsToMinutesSeconds(seconds) {
 }
 
 async function getSongs(folder) {
-    currFolder = folder;
-    let folderName = folder.split("/").pop(); 
-    songs = folderSongs[folderName] || [];
     let songUL = document.querySelector(".songList ul");
     songUL.innerHTML = "";
+    
+    // --- MODIFIED: To handle "Liked Songs" virtual folder ---
+    if (folder === 'Liked Songs') {
+        songs = likedSongs.map(fullPath => fullPath.split('/').pop()); // Get just filenames
+        currFolder = 'Liked Songs'; // Set special folder flag
+    } else {
+        currFolder = folder;
+        let folderName = folder.split("/").pop(); 
+        songs = folderSongs[folderName] || [];
+    }
+    // --------------------------------------------------------
+
+    if (songs.length === 0 && folder === 'Liked Songs') {
+        songUL.innerHTML = `<li style="cursor: default; background: none; border: none;">No liked songs yet.</li>`;
+        return songs;
+    }
+
     for (const song of songs) {
         songUL.innerHTML += `
         <li role="button" tabindex="0">
@@ -65,6 +86,9 @@ async function getSongs(folder) {
     }
 
     Array.from(document.querySelectorAll(".songList li")).forEach(e => {
+        // Check if it's the "No liked songs" message
+        if (e.style.cursor === 'default') return; 
+        
         e.addEventListener("click", () => {
             let trackName = e.querySelector(".info").firstElementChild.innerHTML.trim() + ".mp3";
             playMusic(trackName);
@@ -83,7 +107,21 @@ const playMusic = (track, pause = false) => {
         play.src = "img/play.svg";
         return; 
     }
-    currentSong.src = `${currFolder}/${track}`;
+    
+    // --- MODIFIED: To find the full path for liked songs ---
+    if (currFolder === 'Liked Songs') {
+        let fullPath = likedSongs.find(path => path.endsWith('/' + track));
+        if (fullPath) {
+            currentSong.src = fullPath;
+        } else {
+            console.error("Could not find liked song full path:", track);
+            return;
+        }
+    } else {
+        currentSong.src = `${currFolder}/${track}`;
+    }
+    // ------------------------------------------------------
+
     if (!pause) {
         currentSong.play();
         play.src = "img/pause.svg";
@@ -91,6 +129,37 @@ const playMusic = (track, pause = false) => {
     document.querySelector(".songinfo").innerHTML = decodeURI(track.replace(".mp3", ""));
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
 };
+
+// --- NEW: Function to handle liking/unliking an album ---
+function toggleLikeAlbum(likeButton) {
+    const folderName = likeButton.dataset.folder;
+    const songsInAlbum = folderSongs[folderName] || [];
+    const isLiked = likeButton.classList.toggle('liked');
+    const heartPath = likeButton.querySelector('svg path');
+
+    if (isLiked) {
+        // --- Album is LIKED ---
+        heartPath.setAttribute('d', heartFilledPath);
+        for (const song of songsInAlbum) {
+            const fullPath = `songs/${folderName}/${song}`;
+            if (!likedSongs.includes(fullPath)) {
+                likedSongs.push(fullPath);
+            }
+        }
+    } else {
+        // --- Album is UNLIKED ---
+        heartPath.setAttribute('d', heartOutlinePath);
+        for (const song of songsInAlbum) {
+            const fullPath = `songs/${folderName}/${song}`;
+            likedSongs = likedSongs.filter(s => s !== fullPath);
+        }
+    }
+    
+    // Optional: Refresh the liked songs list if it's currently open
+    if (currFolder === 'Liked Songs') {
+        getSongs('Liked Songs');
+    }
+}
 
 async function displayAlbums() {
     let cardContainer = document.querySelector(".cardContainer");
@@ -112,6 +181,8 @@ async function displayAlbums() {
         try {
             let a = await fetch(`songs/${folder}/info.json`);
             let response = await a.json(); 
+            
+            // --- MODIFIED: Added the heart button HTML ---
             cardContainer.innerHTML += `
             <div data-folder="${folder}" class="card" role="button" tabindex="0">
                 <div class="play">
@@ -121,15 +192,25 @@ async function displayAlbums() {
                             stroke-linejoin="round" />
                     </svg>
                 </div>
+
+                <div class="like-btn" data-folder="${folder}" role="button" aria-label="Like album">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="${heartOutlinePath}"></path>
+                    </svg>
+                </div>
                 <img src="songs/${folder}/cover.jpg" alt="${response.title} album cover" onerror="this.src='img/cover.jpg'">
                 <h2>${response.title}</h2>
                 <p>${response.description}</p>
             </div>`;
+            // --------------------------------------------
         } catch (error) {
             console.error(`Could not load info.json for folder: ${folder}`, error);
         }
     }
 
+    // --- MODIFIED: Split card click and like click listeners ---
+    
+    // Card click listener (to play album)
     Array.from(document.getElementsByClassName("card")).forEach(e => { 
         e.addEventListener("click", async item => {
             songs = await getSongs(`songs/${item.currentTarget.dataset.folder}`);  
@@ -152,6 +233,14 @@ async function displayAlbums() {
             }
         });
     });
+
+    // --- NEW: Like button click listener ---
+    Array.from(document.getElementsByClassName("like-btn")).forEach(e => {
+        e.addEventListener("click", (event) => {
+            event.stopPropagation(); // VERY IMPORTANT: Prevents the card click from firing
+            toggleLikeAlbum(event.currentTarget);
+        });
+    });
 }
 
 async function main() {
@@ -160,6 +249,14 @@ async function main() {
     if (songs.length > 0) playMusic(songs[0], true);
     else playMusic(undefined, true);
     await displayAlbums();
+
+    // --- NEW: Add click listener for the Liked Songs card in sidebar ---
+    document.getElementById("likedSongsCard").addEventListener("click", () => {
+        getSongs("Liked Songs");
+        // Optional: Close mobile sidebar if open
+        document.querySelector(".left").classList.remove("open");
+    });
+    // -----------------------------------------------------------------
 
     play.addEventListener("click", () => {
         if (!currentSong.src || currentSong.src.endsWith("/")) {
@@ -199,8 +296,12 @@ async function main() {
     previous.addEventListener("click", () => {
         if (!currentSong.src || !songs || songs.length === 0) return;
         currentSong.pause();
-        let currentTrack = decodeURI(currentSong.src.split("/").pop());
-        let index = songs.indexOf(currentTrack);
+        
+        // --- MODIFIED: To work with liked songs list ---
+        let currentTrackName = decodeURI(currentSong.src.split("/").pop());
+        let index = songs.indexOf(currentTrackName);
+        // ----------------------------------------------
+
         if (index === -1) {
             playMusic(songs[0]);
             return;
@@ -212,8 +313,12 @@ async function main() {
     next.addEventListener("click", () => {
         if (!currentSong.src || !songs || songs.length === 0) return;
         currentSong.pause();
-        let currentTrack = decodeURI(currentSong.src.split("/").pop());
-        let index = songs.indexOf(currentTrack);
+        
+        // --- MODIFIED: To work with liked songs list ---
+        let currentTrackName = decodeURI(currentSong.src.split("/").pop());
+        let index = songs.indexOf(currentTrackName);
+        // ----------------------------------------------
+
         if (index === -1) {
             playMusic(songs[0]);
             return;

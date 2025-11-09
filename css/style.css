@@ -307,7 +307,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #1ed760;
+  background: #6e68bb;
   position: relative;
   bottom: 3.5px; /* Center on the seekbar */
   left: 0%; /* JS will control this */
@@ -372,53 +372,6 @@ body {
 .range input {
   cursor: pointer;
   accent-color: #1ed760; /* Style the slider */
-}
-/* --- Animation for Album Play Button --- */
-
-/* 1. Make the card a positioning anchor. */
-.card {
-  position: relative; 
-}
-
-/* 2. Style the play button itself (the green circle) */
-.card .play {
-  /* Positioning */
-  position: absolute;
-  right: 18px;  /* 18px from the right edge */
-  bottom: 18px; /* 18px from the bottom edge */
-  z-index: 2;     /* Ensures it's on top of the image */
-
-  /* Appearance */
-  width: 48px;
-  height: 48px;
-  background-color: #bf566d; /* Spotify Green */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* Initial State (Hidden & slightly down) */
-  opacity: 0;
-  transform: translateY(15px); /* Start 15px lower */
-  
-  /* Animation Effect */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* 3. Style the black SVG triangle inside the green circle */
-.card .play svg {
-  width: 20px;
-  height: 20px;
-}
-.card .play svg path {
-  fill: #000;   /* Black triangle */
-  stroke: #000; /* Black triangle border */
-}
-
-/* 4. This is the HOVER effect */
-.card:hover .play {
-  opacity: 1;               /* Make it visible */
-  transform: translateY(0); /* Move it up to its final position */
 }
 
 /* --- RESPONSIVE --- */
@@ -558,4 +511,89 @@ body {
   .range input {
     width: 100%;
   }
+} 
+
+/* --- (NEW) Animation for Album Play Button --- */
+
+.card {
+  position: relative; 
+}
+
+.card .play {
+  /* Positioning */
+  position: absolute;
+  right: 18px;  /* 18px from the right edge */
+  bottom: 18px; /* 18px from the bottom edge */
+  z-index: 2;     /* Ensures it's on top of the image */
+
+  /* Appearance */
+  width: 48px;
+  height: 48px;
+  background-color: #1ed760; /* Spotify Green */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Initial State (Hidden & slightly down) */
+  opacity: 0;
+  transform: translateY(15px); /* Start 15px lower */
+  
+  /* Animation Effect */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.card .play svg {
+  width: 20px;
+  height: 20px;
+}
+.card .play svg path {
+  fill: #000;   /* Black triangle */
+  stroke: #000; /* Black triangle border */
+}
+
+.card:hover .play {
+  opacity: 1;               /* Make it visible */
+  transform: translateY(0); /* Move it up to its final position */
+}
+
+
+/* --- (NEW) Like Button on Cards --- */
+.card .like-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  cursor: pointer;
+  
+  /* Initial state: Faded */
+  opacity: 0.7;
+  transform: scale(1);
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover .like-btn {
+  opacity: 1; /* Fully visible on card hover */
+}
+
+.card .like-btn:hover {
+  transform: scale(1.15); /* Enlarge on heart hover */
+}
+
+.card .like-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Style for the empty heart */
+.card .like-btn svg path {
+  fill: none;
+  stroke: #ffffff; /* White outline */
+  stroke-width: 2px;
+}
+
+/* Style for the filled (liked) heart */
+.card .like-btn.liked svg path {
+  fill: #1ed760;   /* Spotify green fill */
+  stroke: #1ed760; /* Spotify green outline */
 }
