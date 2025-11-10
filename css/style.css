@@ -559,7 +559,8 @@ body {
   stroke-width: 2px;
 }
 
+/* --- THIS IS THE MODIFIED RULE --- */
 .card .like-btn.liked svg path {
-  fill: #1ed760;
-  stroke: #1ed760;
+  fill: #ff0000; /* Changed to solid red */
+  stroke: #ff0000; /* Changed to solid red */
 }
