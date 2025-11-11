@@ -107,6 +107,19 @@ const playMusic = (track, pause = false) => {
         play.src = "img/play.svg";
         return; 
     }
+
+    function highlightCurrentSong(trackName) {
+    const songListLi = document.querySelectorAll(".songList li");
+    songListLi.forEach(li => {
+        li.classList.remove('active-song');
+    });
+    Array.from(songListLi).forEach(li => {
+        const liTrackName = li.querySelector(".info").firstElementChild.innerHTML.trim();
+        if (decodeURI(trackName).includes(liTrackName)) {
+            li.classList.add('active-song');
+        }
+    });
+}
     
     // --- MODIFIED: To find the full path for liked songs ---
     if (currFolder === 'Liked Songs') {
@@ -119,7 +132,9 @@ const playMusic = (track, pause = false) => {
         }
     } else {
         currentSong.src = `${currFolder}/${track}`;
+        highlightCurrentSong(track);
     }
+
     // ------------------------------------------------------
 
     if (!pause) {
