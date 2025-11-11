@@ -346,6 +346,28 @@ async function main() {
             document.querySelector(".range input").value = restoreVolume * 100;
         }
     });
+
+    
+    // --- NEW: Add search functionality ---
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const cards = document.querySelectorAll('.cardContainer .card');
+
+        cards.forEach(card => {
+            const title = card.querySelector('h2').textContent.toLowerCase();
+            const description = card.querySelector('p').textContent.toLowerCase();
+            
+            // Check if title or description includes the search term
+            const isVisible = title.includes(searchTerm) || description.includes(searchTerm);
+            
+            if (isVisible) {
+                card.style.display = ''; // Show the card (resets to default display)
+            } else {
+                card.style.display = 'none'; // Hide the card
+            }
+        });
+    });
+    // --- END: Search functionality ---
 }
 
 main();
