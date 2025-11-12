@@ -38,7 +38,7 @@ const folderSongs = {
         "Tell Me - Karan Aujla.mp3",
         "Wavy Karan Aujla.mp3",
         "Winning Speech - Karan Aujla.mp3",
-        "Boyfriend Karan Aujla.mp3" // <-- New song added
+        "Boyfriend Karan Aujla.mp3"
     ],
     "Señorita - Shawn Mendes": ["Señorita - Shawn Mendes.mp3"],
     "Main Rang Sharbaton ka": ["Main Rang Sharbaton ka.mp3"],
@@ -47,7 +47,6 @@ const folderSongs = {
     "Sahiba": ["Sahiba.mp3"],
     "Chikni Chameli": ["Chikni Chameli.mp3"],
     "Jalebi Bai": ["Jalebi Bai.mp3"],
-    // --- New Albums Added ---
     "JENNIE Hits": [
         "JENNIE - Mantra.mp3", 
         "JENNIE & Dominic Fike.mp3", 
@@ -56,7 +55,10 @@ const folderSongs = {
     "Doja Cat - Woman": ["Doja Cat - Woman.mp3"],
     "Naina": ["Naina.mp3"],
     "Coldplay X BTS - My Universe": ["Coldplay X BTS - My Universe.mp3"],
-    "Even When_The Best Part": ["Olivia Rodrigo, Joshua Bassett - Even When_The Best Part.mp3"]
+    "Even When_The Best Part": ["Olivia Rodrigo, Joshua Bassett - Even When_The Best Part.mp3"],
+    // --- New Albums Added ---
+    "Dil Tu Jaan Tu": ["Dil Tu Jaan Tu.mp3"],
+    "Varoon": ["Vaaroon - Mirzapur.mp3"]
 };
 // ------------------------------------------
 
@@ -197,7 +199,9 @@ async function displayAlbums() {
         "Doja Cat - Woman",
         "Naina",
         "Coldplay X BTS - My Universe",
-        "Even When_The Best Part"
+        "Even When_The Best Part",
+        "Dil Tu Jaan Tu",
+        "Varoon"
     ];
     // ----------------------------------
 
@@ -321,7 +325,9 @@ async function main() {
             "Doja Cat - Woman",
             "Naina",
             "Coldplay X BTS - My Universe",
-            "Even When_The Best Part"
+            "Even When_The Best Part",
+            "Dil Tu Jaan Tu",
+            "Varoon"
         ];
         // -----------------------------------------------------
 
@@ -398,16 +404,19 @@ async function main() {
     });
 
     // This search will only work if you add an <input> element with id="searchInput" to your HTML file.
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const cards = document.querySelectorAll('.cardContainer .card');
-        cards.forEach(card => {
-            const title = card.querySelector('h2').textContent.toLowerCase();
-            const description = card.querySelector('p').textContent.toLowerCase();
-            const isVisible = title.includes(searchTerm) || description.includes(searchTerm);
-            card.style.display = isVisible ? '' : 'none';
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.cardContainer .card');
+            cards.forEach(card => {
+                const title = card.querySelector('h2').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                const isVisible = title.includes(searchTerm) || description.includes(searchTerm);
+                card.style.display = isVisible ? '' : 'none';
+            });
         });
-    });
+    }
 }
 
 main();
