@@ -137,6 +137,7 @@ const playMusic = (track, pause = false) => {
         if (fullPath) {
             currentSong.src = fullPath;
         } 
+        // We don't highlight in 'Liked Songs' view as it might be a different list
     } else {
         currentSong.src = `${currFolder}/${track}`;
         highlightCurrentSong(track);
@@ -291,21 +292,27 @@ async function main() {
             (currentSong.currentTime / currentSong.duration) * 100 + "%";
     });
 
-    // --- NEW FIXED FEATURE: Auto-play next song or next album ---
+    // --- THIS IS THE UPDATED BLOCK ---
     currentSong.addEventListener("ended", async () => {
-
         if (!songs || songs.length === 0) return;
 
-        // FIX APPLIED HERE
         let currentTrackName = decodeURI(currentSong.src.split("/").pop().split("?")[0]);
-
         let index = songs.indexOf(currentTrackName);
 
+        // Check for next song in the current list (works for albums AND Liked Songs)
         if (index !== -1 && index + 1 < songs.length) {
             playMusic(songs[index + 1]);
             return;
         }
 
+        // If it's the end of the list, AND we are in "Liked Songs", just stop.
+        if (currFolder === 'Liked Songs') {
+            document.querySelector(".songinfo").innerHTML = "End of Liked Songs 🎵";
+            play.src = "img/play.svg";
+            return; // Stop here
+        }
+
+        // If we're not in "Liked Songs", proceed to next album logic
         const folderOrder = [
             "Kiliye Kiliye", 
             "O mere Dil ke", 
@@ -343,6 +350,7 @@ async function main() {
             play.src = "img/play.svg";
         }
     });
+    // --- END OF UPDATED BLOCK ---
 
     document.querySelector(".seekbar").addEventListener("click", e => {
         if (currentSong.duration) {
