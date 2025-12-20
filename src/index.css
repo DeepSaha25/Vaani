@@ -519,6 +519,7 @@ body {
   background: #444;
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
 }
 .vol-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -529,27 +530,43 @@ body {
   cursor: pointer;
 }
 
-/* --- Responsive --- */
-@media (max-width: 768px) {
+/* --- Default Mobile Hidden Elements (Desktop) --- */
+.mobile-controls-container {
+  display: none;
+}
+.mobile-progress {
+  display: none;
+}
+.hamburgerContainer {
+  display: none;
+}
+
+/* --- Responsive (Tablets & Mobile) --- */
+@media (max-width: 1024px) {
   .left {
     position: fixed;
-    left: -100%;
+    left: 0;
     top: 0;
     height: 100%;
     width: 80%;
+    max-width: 300px;
     background: black;
-    transition: transform 0.3s ease;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 16px;
+    z-index: 200; /* Above everything */
+    box-shadow: 10px 0 50px rgba(0,0,0,0.5);
   }
   .left.open {
     transform: translateX(0);
-    left: 0;
   }
+  
   .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 15;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 150;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s;
@@ -561,64 +578,133 @@ body {
     border-radius: 0;
     border: none;
     height: 100vh;
+    margin-bottom: 0;
   }
+  
+  /* Header adjustments */
+  .header {
+    padding: 16px;
+    gap: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header > div:first-child {
+     width: 100%;
+     justify-content: space-between;
+  }
+
+  .search-wrapper {
+    display: block !important;
+    width: 100%;
+  }
+  
+  .search-bar {
+      width: 100%;
+  }
+  .hamburgerContainer {
+    display: block !important;
+    cursor: pointer;
+  }
+
   .card-container {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+    padding-bottom: 140px; 
   }
-  .card { padding: 12px; }
+  .cards-grid { padding: 16px; }
+  .card { padding: 10px; }
+  .card-title { font-size: 0.9rem; }
+  
   .card-play-btn {
-    width: 36px; height: 36px;
+    width: 40px; height: 40px;
     bottom: 8px; right: 8px;
-    /* Visible on mobile usually better */
     opacity: 1; transform: none; 
     background: rgba(30, 215, 96, 0.9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
 
   /* Mobile Playbar */
   .playbar {
-    bottom: 0px;
+    bottom: 0;
     left: 0; right: 0;
+    width: 100%;
     border-radius: 0;
-    height: 120px; /* Taller */
+    height: auto;
+    min-height: 120px;
     flex-direction: column;
-    padding: 12px 16px;
+    padding: 16px 20px;
     border: none;
-    border-top: 1px solid var(--border-subtle);
-    background: #121212; /* Solid bg better for performance/battery on mobile */
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(18, 18, 18, 0.98); 
+    backdrop-filter: blur(20px);
+    align-items: flex-start;
   }
   
-  .pb-center { display: none; /* We'll create a mobile layout structure via flex order below */ }
-  .pb-right { display: none; }
-  .pb-left { width: 100%; margin-bottom: 8px; }
-  
-  /* Redefine for mobile structure */
-  .playbar {
-    display: block;
-    position: fixed;
-  }
-  .mobile-player-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .pb-left {
     width: 100%;
     margin-bottom: 12px;
   }
+  .pb-center, .pb-right {
+    display: none !important;
+  }
   
-  /* We need to restructure Playbar.jsx to support this CSS or just use CSS grid tricks */
-  /* For now, let's keep it simple: Hide advanced controls, show basics */
+  /* Mobile Controls Container */
+  .mobile-controls-container {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+  
+  .mobile-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+  }
+  
+  .mobile-play-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-play-btn img { margin-left: 2px; }
+
+  .mobile-progress {
+    width: 100%;
+    padding: 0 4px;
+    display: block !important;
+  }
+  .mobile-seek {
+     width: 100%;
+     height: 4px;
+     background: rgba(255,255,255,0.15);
+     border-radius: 2px;
+  }
+  
+  /* Scrollbar Hiding for clean mobile look */
+  ::-webkit-scrollbar { width: 4px; }
 }
 
-/* Seeking Slider Styles */
+/* Seeking Slider Styles Refinement */
 .seek-slider {
   flex: 1;
   -webkit-appearance: none;
+  appearance: none;
   height: 4px;
   background: rgba(255,255,255,0.1);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
+  transition: height 0.2s;
 }
+.seek-slider:hover { height: 6px; }
+
 .seek-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px;
@@ -626,9 +712,10 @@ body {
   border-radius: 50%;
   background: white;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   transition: transform 0.1s;
+  margin-top: -3px; 
 }
 .seek-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.3);
 }

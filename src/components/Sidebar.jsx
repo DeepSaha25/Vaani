@@ -7,7 +7,8 @@ const Sidebar = ({
     playMusic,
     currentSongName,
     setCurrFolder,
-    likedSongs
+    likedSongs,
+    onHome
 }) => {
 
     const handleSongClick = (song) => {
@@ -28,7 +29,7 @@ const Sidebar = ({
                         <img src="img/unnamed-removebg-preview.png" alt="TuneMate Logo" />
                         <p>TuneMate</p>
                     </div>
-                    <div className="nav-item" onClick={() => window.location.reload()}>
+                    <div className="nav-item" onClick={onHome}>
                         <img className="invert" src="img/home.svg" alt="Home" />
                         <span>Home</span>
                     </div>

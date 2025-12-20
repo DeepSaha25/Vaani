@@ -108,52 +108,27 @@ const Playbar = ({
                 />
             </div>
 
-            <style>{`
-                @media (max-width: 768px) {
-                   .pb-center, .pb-right { display: none; }
-                }
-            `}</style>
-
-            {/* Mobile Controls */}
-            <div className="mobile-controls" style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%',
-                marginTop: '8px'
-            }}>
-                <style>{`
-                    .mobile-controls { display: none !important; }
-                    @media (max-width: 768px) {
-                         .mobile-controls { display: flex !important; }
-                    }
-                  `}</style>
-
-                <img className="invert" src="img/prevsong.svg" width="24" onClick={onPrev} alt="Prev" />
-                <div className="btn-play" onClick={onPlayPause} style={{ width: '40px', height: '40px' }}>
-                    <img src={isPlaying ? "img/pause.svg" : "img/play.svg"} width="16" alt="Play" />
+            {/* Mobile Controls & Progress (Visible only on mobile via CSS) */}
+            <div className="mobile-controls-container">
+                <div className="mobile-controls">
+                    <img className="invert" src="img/prevsong.svg" width="24" onClick={onPrev} alt="Prev" />
+                    <div className="btn-play mobile-play-btn" onClick={onPlayPause}>
+                        <img src={isPlaying ? "img/pause.svg" : "img/play.svg"} width="16" alt="Play" />
+                    </div>
+                    <img className="invert" src="img/nextsong.svg" width="24" onClick={onNext} alt="Next" />
                 </div>
-                <img className="invert" src="img/nextsong.svg" width="24" onClick={onNext} alt="Next" />
-            </div>
 
-            {/* Mobile Progress */}
-            <div className="mobile-progress" style={{ width: '100%', marginTop: '8px' }}>
-                <style>{`
-                    .mobile-progress { display: none !important; }
-                    @media (max-width: 768px) {
-                         .mobile-progress { display: block !important; }
-                    }
-                 `}</style>
-                <input
-                    type="range"
-                    className="seek-slider"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={seekPercent || 0}
-                    onChange={handleSeekChange}
-                    style={{ width: '100%' }}
-                />
+                <div className="mobile-progress">
+                    <input
+                        type="range"
+                        className="seek-slider mobile-seek"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={seekPercent || 0}
+                        onChange={handleSeekChange}
+                    />
+                </div>
             </div>
         </div>
     );

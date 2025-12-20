@@ -33,21 +33,21 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
         }
 
         const fetchAlbums = async () => {
-            const data = [];
-            for (const folder of albumFolders) {
+            const promises = albumFolders.map(async (folder) => {
                 try {
                     const res = await fetch(`songs/${folder}/info.json`);
                     if (res.ok) {
                         const info = await res.json();
-                        data.push({ folder, ...info });
+                        return { folder, ...info };
                     } else {
-                        data.push({ folder, title: folder, description: "Album" });
+                        return { folder, title: folder, description: "Album" };
                     }
                 } catch (error) {
-                    // console.error(`Could not load info for ${folder}`, error);
-                    data.push({ folder, title: folder, description: "Unknown Album" });
+                    return { folder, title: folder, description: "Unknown Album" };
                 }
-            }
+            });
+
+            const data = await Promise.all(promises);
             setAlbumData(data);
         };
         fetchAlbums();
@@ -85,7 +85,6 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
                         onClick={() => setSidebarOpen(true)}
                         style={{ display: 'none' }}
                     >
-                        <style>{`@media(max-width:768px){ .hamburgerContainer{ display:block !important; cursor:pointer;} }`}</style>
                         <img className="invert" src="img/hamburger.svg" alt="Menu" width="24" />
                     </div>
 

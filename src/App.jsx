@@ -254,6 +254,12 @@ function App() {
     }
   };
 
+  const handleHome = () => {
+    setIsSearching(false);
+    setSearchResults([]);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="container flex">
       <audio
@@ -281,6 +287,7 @@ function App() {
           loadFolder(f);
         }}
         likedSongs={likedSongs}
+        onHome={handleHome}
       />
 
       <MainContent
