@@ -1,4 +1,4 @@
-// ... (imports)
+import React from 'react';
 
 const Sidebar = ({
     sidebarOpen,
@@ -20,100 +20,84 @@ const Sidebar = ({
                 className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
                 onClick={() => setSidebarOpen(false)}
             ></div>
-            <div className={`left ${sidebarOpen ? 'open' : ''}`}>
-                <div
-                    className="close"
-                    role="button"
-                    aria-label="Close sidebar"
-                    onClick={() => setSidebarOpen(false)}
-                >
-                    <img className="invert" src="img/close.svg" alt="Close" />
-                </div>
 
-                <div className="home bg-grey rounded m-1 p-1">
+            <div className={`left ${sidebarOpen ? 'open' : ''}`}>
+                {/* Home / Nav Section */}
+                <div className="sidebar-box">
                     <div className="logo">
                         <img src="img/unnamed-removebg-preview.png" alt="TuneMate Logo" />
                         <p>TuneMate</p>
                     </div>
-                    <ul>
-                        <li onClick={() => window.location.reload()}>
-                            <img className="invert" src="img/home.svg" alt="Home" />Home
-                        </li>
-                    </ul>
+                    <div className="nav-item" onClick={() => window.location.reload()}>
+                        <img className="invert" src="img/home.svg" alt="Home" />
+                        <span>Home</span>
+                    </div>
+                    <div className="nav-item" onClick={() => {
+                        // Focus main search input ideally, for now just close sidebar
+                        setSidebarOpen(false);
+                    }}>
+                        <img className="invert" src="img/search.svg" alt="Search" />
+                        <span>Search</span>
+                    </div>
                 </div>
 
-                <div className="library bg-grey rounded m-1 p-1">
-                    <div className="heading">
-                        <img className="invert" src="img/playlist.svg" alt="Your Library" />
-                        <h2>Your Library</h2>
+                {/* Library Section */}
+                <div className="sidebar-box library">
+                    <div className="library-header">
+                        <img className="invert" src="img/playlist.svg" alt="Library" />
+                        <span>Your Library</span>
                     </div>
 
-                    <div className="library-cards">
-                        <div
-                            id="likedSongsCard"
-                            className="lib-card"
-                            role="button"
-                            tabIndex="0"
-                            onClick={() => {
-                                setCurrFolder('Liked Songs');
-                                setSidebarOpen(false); // Close sidebar on mobile
-                            }}
-                        >
-                            <div className="lib-info">
-                                <h3>Liked Songs</h3>
-                                <p>{likedSongs.length} liked tracks</p>
-                            </div>
-                        </div>
-
-                        {/* Recently Played - static in original, let's keep it static or remove if unused logic */}
-                        <div className="lib-card">
-                            <div className="lib-info">
-                                <h3>Recently Played</h3>
-                                <p>Catch your recent vibes</p>
-                            </div>
-                        </div>
+                    <div className="nav-item" onClick={() => {
+                        setCurrFolder('Liked Songs');
+                        setSidebarOpen(false);
+                    }}>
+                        <img className="invert" src="img/like.svg" alt="Liked" style={{ width: '20px' }} />
+                        <span>Liked Songs</span>
                     </div>
 
                     <div className="songList">
                         <ul>
                             {songs.length === 0 ? (
-                                <li style={{ cursor: 'default', background: 'none', border: 'none' }}>
-                                    {/* Message for empty state handled in parent or here? */}
-                                    No songs found.
+                                <li className="song-row" style={{ cursor: 'default' }}>
+                                    <span style={{ fontSize: '0.9rem', color: '#666' }}>No songs here</span>
                                 </li>
                             ) : (
                                 songs.map((song, index) => {
                                     let songDisplayName = "";
+                                    let songArtist = "Unknown Artist";
                                     let isActive = false;
 
                                     if (typeof song === 'string') {
                                         songDisplayName = song.replaceAll("%20", " ").replace(".mp3", "");
-                                        isActive = currentSongName && decodeURI(currentSongName).includes(songDisplayName);
+                                        if (songDisplayName.includes("-")) {
+                                            const parts = songDisplayName.split("-");
+                                            songDisplayName = parts[1].trim();
+                                            songArtist = parts[0].trim();
+                                        }
+                                        isActive = currentSongName && decodeURI(currentSongName).includes(song.replace(".mp3", ""));
                                     } else {
-                                        // API Song Object
                                         songDisplayName = song.name;
+                                        songArtist = song.artist || "Unknown Artist";
                                         isActive = currentSongName === song.name;
                                     }
 
                                     return (
                                         <li
                                             key={index}
-                                            role="button"
-                                            tabIndex="0"
-                                            className={isActive ? "active-song" : ""}
+                                            className={`song-row ${isActive ? "active" : ""}`}
                                             onClick={() => handleSongClick(song)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') handleSongClick(song);
-                                            }}
                                         >
-                                            <img className="invert" width="24" src="img/music.svg" alt="Music icon" />
-                                            <div className="info">
-                                                <div>{songDisplayName}</div>
-                                                {typeof song !== 'string' && <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{song.artist}</div>}
-                                            </div>
-                                            <div className="playnow">
-                                                <span>Play Now</span>
-                                                <img width="24" className="invert" src="img/play.svg" alt="Play now" />
+                                            <img
+                                                className="invert"
+                                                width="16"
+                                                src={isActive ? "img/volume.svg" : "img/music.svg"}
+                                                alt="Music icon"
+                                                style={{ opacity: isActive ? 1 : 0.5 }}
+                                            />
+                                            <div className="song-info">
+                                                <div className="song-title">{songDisplayName}</div>
+                                                <div className="song-artist">{songArtist}</div>
                                             </div>
                                         </li>
                                     );

@@ -12,103 +12,148 @@ const Playbar = ({
     volume,
     onVolumeChange
 }) => {
-    const seekbarRef = useRef(null);
 
     const formatTime = (seconds) => {
-        if (isNaN(seconds) || seconds < 0) return "00:00";
+        if (isNaN(seconds) || seconds < 0) return "0:00";
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
-        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
     };
 
-    const handleSeek = (e) => {
-        if (!duration) return;
-        const rect = seekbarRef.current.getBoundingClientRect();
-        const percent = ((e.clientX - rect.left) / rect.width) * 100;
-        // Constrain percent
-        const constrainedPercent = Math.max(0, Math.min(100, percent));
-        onSeek(constrainedPercent);
-    };
-
-    const handleSeekClick = (e) => {
-        // Just alias to handleSeek for now, as both click and drag might be needed in future, 
-        // but original just had click.
-        handleSeek(e);
+    const handleSeekChange = (e) => {
+        const percent = parseFloat(e.target.value);
+        onSeek(percent);
     };
 
     const seekPercent = duration ? (currentTime / duration) * 100 : 0;
 
+    // Parse Display Name
+    let displayName = "No Song Playing";
+    let displayArtist = "";
+
+    if (currentSongName) {
+        const raw = decodeURI(currentSongName.replace(".mp3", ""));
+        if (raw.includes("-")) {
+            const parts = raw.split("-");
+            displayName = parts[1].trim();
+            displayArtist = parts[0].trim();
+        } else {
+            displayName = raw;
+        }
+    }
+
     return (
         <div className="playbar">
-            <div
-                className="seekbar"
-                ref={seekbarRef}
-                onClick={handleSeekClick}
-            >
-                <div
-                    className="circle"
-                    style={{ left: `${seekPercent}%` }}
-                ></div>
-            </div>
-            <div className="abovebar">
-                <div className="songinfo">
-                    {currentSongName ? decodeURI(currentSongName.replace(".mp3", "")) : "No song playing"}
+            {/* Left: Song Info */}
+            <div className="pb-left">
+                <div className="pb-cover">
+                    <img src="img/cover.jpg" alt="Album Art" />
                 </div>
-                <div className="songbuttons">
+                <div className="pb-info">
+                    <div className="pb-title">{displayName}</div>
+                    <div className="pb-artist">{displayArtist}</div>
+                </div>
+            </div>
+
+            {/* Center: Controls & Progress */}
+            <div className="pb-center">
+                <div className="pb-controls">
                     <img
-                        role="button"
-                        aria-label="Previous song"
-                        id="previous"
-                        className="invert"
+                        className="btn-control invert"
                         src="img/prevsong.svg"
-                        alt="Previous"
+                        alt="Prev"
                         onClick={onPrev}
                     />
+
+                    <div className="btn-play" onClick={onPlayPause}>
+                        <img
+                            src={isPlaying ? "img/pause.svg" : "img/play.svg"}
+                            alt="Play/Pause"
+                            style={{ width: isPlaying ? '14px' : '16px', marginLeft: isPlaying ? '0' : '2px' }}
+                        />
+                    </div>
+
                     <img
-                        role="button"
-                        aria-label={isPlaying ? "Pause song" : "Play song"}
-                        id="play"
-                        className="invert"
-                        src={isPlaying ? "img/pause.svg" : "img/play.svg"}
-                        alt="Play"
-                        onClick={onPlayPause}
-                    />
-                    <img
-                        role="button"
-                        aria-label="Next song"
-                        id="next"
-                        className="invert"
+                        className="btn-control invert"
                         src="img/nextsong.svg"
                         alt="Next"
                         onClick={onNext}
                     />
                 </div>
-                <div className="timevol">
-                    <div className="songtime">
-                        {formatTime(currentTime)} / {formatTime(duration)}
-                    </div>
-                    <div className="volume">
-                        <img
-                            role="button"
-                            aria-label="Mute/Unmute"
-                            className="invert"
-                            src={volume === 0 ? "img/mute.svg" : "img/volume.svg"}
-                            alt="Volume"
-                            onClick={() => onVolumeChange(volume > 0 ? 0 : 1)} // Simple toggle, ideally remember last volume
-                        />
-                        <div className="range">
-                            <input
-                                type="range"
-                                name="volume"
-                                id="volumeControl"
-                                min="0"
-                                max="100"
-                                value={volume * 100}
-                                onChange={(e) => onVolumeChange(e.target.value / 100)}
-                            />
-                        </div>
-                    </div>
+
+                <div className="progress-container">
+                    <span>{formatTime(currentTime)}</span>
+                    <input
+                        type="range"
+                        className="seek-slider"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={seekPercent || 0}
+                        onChange={handleSeekChange}
+                    />
+                    <span>{formatTime(duration)}</span>
                 </div>
+            </div>
+
+            {/* Right: Volume */}
+            <div className="pb-right">
+                <img className="invert" src="img/volume.svg" alt="Vol" width="18" style={{ opacity: 0.7 }} />
+                <input
+                    type="range"
+                    className="vol-slider"
+                    min="0" max="100"
+                    value={volume * 100}
+                    onChange={(e) => onVolumeChange(e.target.value / 100)}
+                />
+            </div>
+
+            <style>{`
+                @media (max-width: 768px) {
+                   .pb-center, .pb-right { display: none; }
+                }
+            `}</style>
+
+            {/* Mobile Controls */}
+            <div className="mobile-controls" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                marginTop: '8px'
+            }}>
+                <style>{`
+                    .mobile-controls { display: none !important; }
+                    @media (max-width: 768px) {
+                         .mobile-controls { display: flex !important; }
+                    }
+                  `}</style>
+
+                <img className="invert" src="img/prevsong.svg" width="24" onClick={onPrev} alt="Prev" />
+                <div className="btn-play" onClick={onPlayPause} style={{ width: '40px', height: '40px' }}>
+                    <img src={isPlaying ? "img/pause.svg" : "img/play.svg"} width="16" alt="Play" />
+                </div>
+                <img className="invert" src="img/nextsong.svg" width="24" onClick={onNext} alt="Next" />
+            </div>
+
+            {/* Mobile Progress */}
+            <div className="mobile-progress" style={{ width: '100%', marginTop: '8px' }}>
+                <style>{`
+                    .mobile-progress { display: none !important; }
+                    @media (max-width: 768px) {
+                         .mobile-progress { display: block !important; }
+                    }
+                 `}</style>
+                <input
+                    type="range"
+                    className="seek-slider"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={seekPercent || 0}
+                    onChange={handleSeekChange}
+                    style={{ width: '100%' }}
+                />
             </div>
         </div>
     );
