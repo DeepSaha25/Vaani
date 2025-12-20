@@ -20,49 +20,54 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const audioRef = useRef(new Audio());
-  const lastVolumeRef = useRef(1);
+  const audioRef = useRef(null);
 
-  // Initialize Audio Events
-  useEffect(() => {
-    const audio = audioRef.current;
+  // Audio Event Handlers
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+      setDuration(audioRef.current.duration);
+    }
+  };
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      setDuration(audio.duration);
-    };
+  const handleEnded = () => {
+    setIsPlaying(false);
+    handleNext();
+  };
 
-    const handleEnded = () => {
-      setIsPlaying(false);
-      handleNext();
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, []);
+  const handleError = (e) => {
+    console.error("Audio Error:", e);
+    // Attempt to recover or just stop
+    setIsPlaying(false);
+  };
 
   // Handle Play/Pause State Sync
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
+
     if (isPlaying) {
-      // If already playing, this promise resolves immediately? 
-      // We check if it's paused to avoid redundant calls or interruptions
       if (audio.paused) {
-        audio.play().catch(e => console.error("Play failed", e));
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => {
+            console.error("Play failed during sync:", e);
+            // Don't set isPlaying(false) here immediately to avoid flickering if it's just a race/interrupted
+          });
+        }
       }
     } else {
-      audio.pause();
+      if (!audio.paused) {
+        audio.pause();
+      }
     }
   }, [isPlaying]);
 
   // Handle Volume
   useEffect(() => {
-    audioRef.current.volume = volume;
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
   }, [volume]);
 
   // Load songs logic
@@ -119,36 +124,25 @@ function App() {
       return;
     }
 
-    audioRef.current.src = src;
-    setCurrentSongName(trackName);
+    if (audioRef.current) {
+      audioRef.current.src = src;
+      // Important: load() is sometimes needed on mobile if src changes but play() doesn't fire immediately
+      audioRef.current.load();
 
-    // Explicitly try to play when changing tracks
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => setIsPlaying(true))
-        .catch(error => {
-          console.error("Playback failed", error);
-          setIsPlaying(false);
-        });
-    } else {
-      setIsPlaying(true);
+      setCurrentSongName(trackName);
+
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(error => {
+            console.error("Playback failed", error);
+            setIsPlaying(false);
+          });
+      }
     }
   }, [currFolder, likedSongs, loadFolder, isSearching, searchResults]);
 
-
-  // Next/Prev Logic
-  // We need current state of songs and currFolder inside these functions.
-  // Since they are called by event handlers or manually, access to state is fine if defined in component scope.
-  // HOWEVER, the 'ended' listener defined in useEffect needs access to fresh 'songs' and 'currFolder'.
-  // The useEffect dependent on [] will have stale state.
-  // Solution: Use a ref for songs/currFolder OR update the event listener when they change.
-  // Better: Create a 'handleNext' function wrapping the logic and add it to useEffect dependencies?
-  // Or just use a mutable ref that tracks current playlist state.
-
-  // Let's use Refs for playlist state to avoid re-attaching listeners constantly causing audio glitches?
-  // Actually, re-attaching listeners is cheap.
-  // But let's try to keep it simple.
 
   // Handle Search
   const handleSearch = async (query) => {
@@ -166,8 +160,6 @@ function App() {
     if (!songs || songs.length === 0) return;
 
     // Find index. 
-    // If songs contains objects (API), currentSongName matches obj.name
-    // If songs contains strings (Local), currentSongName matches string
     const currentTrackIndex = songs.findIndex(s => {
       return (typeof s === 'string' ? s : s.name) === currentSongName;
     });
@@ -226,25 +218,16 @@ function App() {
     const isLiked = likedSongs.includes(firstSongPath);
 
     if (isLiked) {
-      // Unlike: Remove all songs of this album from likedSongs
+      // Unlike
       const pathsToRemove = songsInAlbum.map(s => `songs/${folderName}/${s}`);
       setLikedSongs(prev => prev.filter(p => !pathsToRemove.includes(p)));
     } else {
-      // Like: Add all songs of this album
+      // Like
       const pathsToAdd = songsInAlbum.map(s => `songs/${folderName}/${s}`);
-      // Filter out duplicates (though shouldn't exist if strictly album based)
       setLikedSongs(prev => {
         const newSet = new Set([...prev, ...pathsToAdd]);
         return Array.from(newSet);
       });
-    }
-
-    // If we are currently viewing Liked Songs, force update of the list?
-    // Since likedSongs is in dependency of loadFolder, if we call loadFolder('Liked Songs') it updates.
-    // But we need to trigger it.
-    if (currFolder === 'Liked Songs') {
-      // It's tricky because 'loadSongs' is a callback.
-      // Effect observing likedSongs?
     }
   };
 
@@ -273,6 +256,19 @@ function App() {
 
   return (
     <div className="container flex">
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        onError={handleError}
+        preload="auto"
+        controls={false}
+        // playsInline is vital for some mobile browsers to allow "inline" playback without fullscreen
+        playsInline
+        // Using anonymous crossOrigin can help with some CDN restrictions and visualizers (if added later)
+        crossOrigin="anonymous"
+        style={{ display: 'none' }}
+      />
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -291,7 +287,7 @@ function App() {
         setSidebarOpen={setSidebarOpen}
         likedSongs={likedSongs}
         onAlbumClick={(f) => {
-          setIsSearching(false); // Clear search when clicking album
+          setIsSearching(false); // Clear search
           handleAlbumClick(f);
         }}
         toggleLikeAlbum={toggleLikeAlbum}
@@ -299,9 +295,6 @@ function App() {
         searchResults={searchResults}
         isSearching={isSearching}
         onPlayApiSong={(song) => {
-          // When playing from click in search results
-          // We want to update the playlist context?
-          // Yes, set playlist to searchResults
           setSongs(searchResults);
           setCurrFolder("Search Results");
           playMusic(song, "Search Results");
@@ -319,7 +312,7 @@ function App() {
         volume={volume}
         onVolumeChange={setVolume}
         onSeek={(percent) => {
-          if (audioRef.current.duration) {
+          if (audioRef.current && audioRef.current.duration) {
             audioRef.current.currentTime = (audioRef.current.duration * percent) / 100;
           }
         }}
