@@ -2,326 +2,335 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
-import { folderSongs, albums as folderOrder } from './data/songs';
 import { searchSongs } from './api/music';
 
+// Storage Keys
+const STORAGE_KEYS = {
+  LIKED: 'tunemate_liked_songs',
+  RECENT: 'tunemate_recently_played',
+  PLAYLISTS: 'tunemate_playlists'
+};
+
 function App() {
-  const [songs, setSongs] = useState([]);
-  const [currFolder, setCurrFolder] = useState(null);
-  const [currentSongName, setCurrentSongName] = useState(null);
+  // --- Audio State ---
+  const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [likedSongs, setLikedSongs] = useState([]); // Stores full paths: "songs/Folder/Song.mp3"
 
-  // Search State
+  // --- Queue & Playback Logic ---
+  const [queue, setQueue] = useState([]); // List of song objects
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [loopMode, setLoopMode] = useState('off'); // 'off', 'all', 'one'
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [shuffledIndices, setShuffledIndices] = useState([]); // Array of indices mapping for shuffle
+
+  // --- Persisted User Data ---
+  const [likedSongs, setLikedSongs] = useState([]); // Array of song objects now (not just paths)
+  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
+  const [playlists, setPlaylists] = useState([]); // [{id: 1, name: 'My Mix', songs: []}]
+
+  // --- UI State ---
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeView, setActiveView] = useState('home'); // 'home', 'search', 'library', 'playlist', 'liked'
+  const [viewData, setViewData] = useState(null); // Metadata for current view (e.g. playlist ID)
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const audioRef = useRef(null);
+  // --- Load Data from Storage ---
+  const [trendingSongs, setTrendingSongs] = useState([]);
 
-  // Audio Event Handlers
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-    handleNext();
-  };
-
-  const handleError = (e) => {
-    console.error("Audio Error:", e);
-    // Attempt to recover or just stop
-    setIsPlaying(false);
-  };
-
-  // Handle Play/Pause State Sync
+  // --- Load Data from Storage ---
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const load = (key, setter) => {
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) setter(JSON.parse(stored));
+      } catch (e) { console.error(`Failed to load ${key}`, e); }
+    };
+    load(STORAGE_KEYS.LIKED, setLikedSongs);
+    load(STORAGE_KEYS.RECENT, setRecentlyPlayed);
+    load(STORAGE_KEYS.PLAYLISTS, setPlaylists);
 
-    if (isPlaying) {
-      if (audio.paused) {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(e => {
-            console.error("Play failed during sync:", e);
-            // Don't set isPlaying(false) here immediately to avoid flickering if it's just a race/interrupted
-          });
-        }
-      }
+    // Fetch Trending
+    searchSongs("Trending Hindi").then(res => setTrendingSongs(res.slice(0, 10)));
+  }, []);
+
+  // --- Save Data to Storage ---
+  useEffect(() => localStorage.setItem(STORAGE_KEYS.LIKED, JSON.stringify(likedSongs)), [likedSongs]);
+  useEffect(() => localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentlyPlayed)), [recentlyPlayed]);
+  useEffect(() => localStorage.setItem(STORAGE_KEYS.PLAYLISTS, JSON.stringify(playlists)), [playlists]);
+
+  // --- Core Playback Functions ---
+
+  // 1. Play a specific song
+  const playSong = useCallback((song, contextQueue = null) => {
+    if (!song) return;
+
+    // If a new context (queue) is provided, replace queue
+    if (contextQueue) {
+      setQueue(contextQueue);
+      const index = contextQueue.findIndex(s => s.id === song.id);
+      setCurrentIndex(index);
+      if (isShuffle) generateShuffleIndices(contextQueue.length);
     } else {
-      if (!audio.paused) {
-        audio.pause();
+      // Playing from current queue? Or standalone? 
+      // If standalone, we should probably add to queue or replace queue?
+      // For now, if no context provided, assume it's just this song (e.g. search result click)
+      // But usually we pass the whole search result as queue
+      if (currentIndex === -1 || !queue.find(s => s.id === song.id)) {
+        setQueue([song]);
+        setCurrentIndex(0);
+      } else {
+        // Song is in queue, find it
+        const index = queue.findIndex(s => s.id === song.id);
+        setCurrentIndex(index);
       }
     }
-  }, [isPlaying]);
 
-  // Handle Volume
-  useEffect(() => {
+    // Add to Recent
+    setRecentlyPlayed(prev => {
+      const temp = prev.filter(s => s.id !== song.id);
+      return [song, ...temp].slice(0, 50); // Keep last 50
+    });
+
+    setIsPlaying(true);
+  }, [queue, isShuffle, currentIndex]);
+
+
+  // 2. Play/Pause Toggle
+  const togglePlay = () => {
     if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-  }, [volume]);
-
-  // Load songs logic
-  const loadFolder = useCallback((folder) => {
-    let newSongs = [];
-    if (folder === 'Liked Songs') {
-      // Map full paths to filenames
-      newSongs = likedSongs.map(path => path.split('/').pop());
-    } else {
-      newSongs = folderSongs[folder] || [];
-    }
-    setSongs(newSongs);
-    setCurrFolder(folder);
-    return newSongs;
-  }, [likedSongs]);
-
-  // Helper to get full path
-  const getFullPath = (trackName, folder) => {
-    if (folder === 'Liked Songs') {
-      return likedSongs.find(path => path.endsWith('/' + trackName));
-    } else {
-      return `songs/${folder}/${trackName}`;
+      if (isPlaying) audioRef.current.pause();
+      else audioRef.current.play();
+      setIsPlaying(!isPlaying);
     }
   };
 
-  const playMusic = useCallback((track, folder = currFolder) => {
-    if (!track) return;
+  // 3. Audio Element Management
+  useEffect(() => {
+    if (currentIndex === -1 || queue.length === 0) return;
+    const song = queue[currentIndex];
+    if (!audioRef.current || !song) return;
 
-    // Determine if track is an API object or a string filename
-    let src;
-    let trackName;
+    // Only change src if it's different to prevent reload on re-render
+    // However, we rely on currentIndex changing.
+    const currentSrc = audioRef.current.src;
+    // song.url is the stream url
+    if (currentSrc !== song.url) {
+      audioRef.current.src = song.url;
+      audioRef.current.load();
+      if (isPlaying) {
+        const promise = audioRef.current.play();
+        if (promise) promise.catch(e => console.error("Play error", e));
+      }
+    }
+  }, [currentIndex, queue, isPlaying]); // Depend on isPlaying to trigger play if state says so
 
-    if (typeof track === 'object' && track.isApiSong) {
-      src = track.url;
-      trackName = track.name;
 
-      if (isSearching) {
-        setSongs(searchResults);
-        setCurrFolder("Search Results");
+  // 4. Handle Next / Prev / Ended
+  const generateShuffleIndices = (length) => {
+    const arr = Array.from({ length }, (_, i) => i);
+    for (let i = length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setShuffledIndices(arr);
+  };
+
+  // Recalculate shuffle if queue changes length significantly
+  useEffect(() => {
+    if (isShuffle && queue.length > 0 && shuffledIndices.length !== queue.length) {
+      generateShuffleIndices(queue.length);
+    }
+  }, [queue.length, isShuffle]);
+
+
+  const handleNext = useCallback(() => {
+    if (queue.length === 0) return;
+
+    let nextIndex;
+    if (isShuffle) {
+      // Find current pos in shuffled array
+      const currentShufflePos = shuffledIndices.indexOf(currentIndex);
+      if (currentShufflePos === -1 || currentShufflePos >= queue.length - 1) {
+        // End of shuffle, loop or stop
+        if (loopMode !== 'off') nextIndex = shuffledIndices[0];
+        else { setIsPlaying(false); return; }
+      } else {
+        nextIndex = shuffledIndices[currentShufflePos + 1];
       }
     } else {
-      // Local file
-      trackName = track; // It's a string
-
-      // Ensure folder logic
-      if (folder !== currFolder && folder !== "Search Results") {
-        loadFolder(folder);
+      // Normal
+      if (currentIndex >= queue.length - 1) {
+        if (loopMode !== 'off') nextIndex = 0;
+        else { setIsPlaying(false); return; }
+      } else {
+        nextIndex = currentIndex + 1;
       }
-      src = getFullPath(track, folder);
     }
+    setCurrentIndex(nextIndex);
+    setIsPlaying(true);
+  }, [queue, currentIndex, isShuffle, loopMode, shuffledIndices]);
 
-    if (!src) {
-      console.error("No source found for track:", track);
+
+  const handlePrev = useCallback(() => {
+    if (queue.length === 0) return;
+
+    if (audioRef.current && audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.src = src;
-      // Important: load() is sometimes needed on mobile if src changes but play() doesn't fire immediately
-      audioRef.current.load();
-
-      setCurrentSongName(trackName);
-
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsPlaying(true))
-          .catch(error => {
-            console.error("Playback failed", error);
-            setIsPlaying(false);
-          });
-      }
+    let prevIndex;
+    if (isShuffle) {
+      const currentShufflePos = shuffledIndices.indexOf(currentIndex);
+      if (currentShufflePos <= 0) prevIndex = shuffledIndices[queue.length - 1]; // Loop back? or 0
+      else prevIndex = shuffledIndices[currentShufflePos - 1];
+    } else {
+      if (currentIndex <= 0) prevIndex = queue.length - 1;
+      else prevIndex = currentIndex - 1;
     }
-  }, [currFolder, likedSongs, loadFolder, isSearching, searchResults]);
+    setCurrentIndex(prevIndex);
+    setIsPlaying(true);
+  }, [queue, currentIndex, isShuffle, shuffledIndices]);
+
+  const handleEnded = () => {
+    if (loopMode === 'one') {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    } else {
+      handleNext();
+    }
+  };
 
 
-  // Handle Search
-  const handleSearch = useCallback(async (query) => {
+  // --- Playlist & Like Logic ---
+  const toggleLike = (song) => {
+    const exists = likedSongs.find(s => s.id === song.id);
+    if (exists) {
+      setLikedSongs(prev => prev.filter(s => s.id !== song.id));
+    } else {
+      setLikedSongs(prev => [song, ...prev]);
+    }
+  };
+
+  const addToPlaylist = (playlistId, song) => {
+    setPlaylists(prev => prev.map(pl => {
+      if (pl.id === playlistId) {
+        if (pl.songs.find(s => s.id === song.id)) return pl; // No duplicates
+        return { ...pl, songs: [...pl.songs, song] };
+      }
+      return pl;
+    }));
+  };
+
+  const createPlaylist = (name) => {
+    const newPl = { id: Date.now(), name, songs: [] };
+    setPlaylists(prev => [...prev, newPl]);
+  };
+
+  const deletePlaylist = (id) => {
+    setPlaylists(prev => prev.filter(pl => pl.id !== id));
+  };
+
+
+  // --- API & Search ---
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
     if (!query) {
       setIsSearching(false);
       setSearchResults([]);
       return;
     }
     setIsSearching(true);
-    const results = await searchSongs(query);
-    setSearchResults(results);
-  }, []);
-
-  const handleNext = useCallback(async () => {
-    if (!songs || songs.length === 0) return;
-
-    // Find index. 
-    const currentTrackIndex = songs.findIndex(s => {
-      return (typeof s === 'string' ? s : s.name) === currentSongName;
-    });
-
-    // 1. Next in current list
-    if (currentTrackIndex !== -1 && currentTrackIndex + 1 < songs.length) {
-      playMusic(songs[currentTrackIndex + 1], currFolder);
-      return;
-    }
-
-    // 2. End of list logic...
-    if (currFolder === 'Liked Songs' || currFolder === 'Search Results') {
-      setIsPlaying(false); // Stop
-      return;
-    }
-
-    // 3. Next Album logic (only for local folders)
-    if (folderOrder.includes(currFolder)) {
-      const currentAlbumIndex = folderOrder.indexOf(currFolder);
-      if (currentAlbumIndex !== -1 && currentAlbumIndex + 1 < folderOrder.length) {
-        const nextAlbum = folderOrder[currentAlbumIndex + 1];
-        const nextSongs = folderSongs[nextAlbum];
-        if (nextSongs && nextSongs.length > 0) {
-          setCurrFolder(nextAlbum);
-          setSongs(nextSongs);
-          playMusic(nextSongs[0], nextAlbum);
-        }
-      } else {
-        setIsPlaying(false);
-      }
-    } else {
-      setIsPlaying(false);
-    }
-  }, [songs, currentSongName, currFolder, playMusic]);
-
-  const handlePrev = useCallback(() => {
-    if (!songs || songs.length === 0) return;
-    const currentTrackIndex = songs.findIndex(s => {
-      return (typeof s === 'string' ? s : s.name) === currentSongName;
-    });
-
-    if (currentTrackIndex === -1) {
-      playMusic(songs[0], currFolder);
-    } else if (currentTrackIndex - 1 < 0) {
-      playMusic(songs[songs.length - 1], currFolder);
-    } else {
-      playMusic(songs[currentTrackIndex - 1], currFolder);
-    }
-  }, [songs, currentSongName, currFolder, playMusic]);
-
-
-  // Toggle Like Album
-  const toggleLikeAlbum = (folderName) => {
-    const songsInAlbum = folderSongs[folderName] || [];
-    const firstSongPath = `songs/${folderName}/${songsInAlbum[0]}`;
-    const isLiked = likedSongs.includes(firstSongPath);
-
-    if (isLiked) {
-      // Unlike
-      const pathsToRemove = songsInAlbum.map(s => `songs/${folderName}/${s}`);
-      setLikedSongs(prev => prev.filter(p => !pathsToRemove.includes(p)));
-    } else {
-      // Like
-      const pathsToAdd = songsInAlbum.map(s => `songs/${folderName}/${s}`);
-      setLikedSongs(prev => {
-        const newSet = new Set([...prev, ...pathsToAdd]);
-        return Array.from(newSet);
-      });
-    }
+    setActiveView('search');
+    const res = await searchSongs(query);
+    setSearchResults(res);
   };
 
-  // Effect to refresh "Liked Songs" view when likedSongs changes
-  useEffect(() => {
-    if (currFolder === 'Liked Songs') {
-      const newSongs = likedSongs.map(path => path.split('/').pop());
-      setSongs(newSongs); // Update displayed list
-    }
-  }, [likedSongs, currFolder]);
-
-
-  // Initialize first album on load
-  useEffect(() => {
-    // "Kiliye Kiliye" default
-    loadFolder("Kiliye Kiliye");
-  }, [loadFolder]);
-
-
-  const handleAlbumClick = (folder) => {
-    const newSongs = loadFolder(folder);
-    if (newSongs && newSongs.length > 0) {
-      playMusic(newSongs[0], folder);
-    }
+  // --- Navigation Helpers ---
+  const navigateTo = (view, data = null) => {
+    setActiveView(view);
+    setViewData(data);
+    if (window.innerWidth < 768) setSidebarOpen(false); // Mobile: close sidebar on correct logic
   };
 
-  const handleHome = () => {
-    setIsSearching(false);
-    setSearchResults([]);
-    setSidebarOpen(false);
-  };
 
   return (
-    <div className="container flex">
+    <div className="flex h-screen w-full overflow-hidden bg-black text-white">
+      {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
+        onTimeUpdate={() => {
+          setCurrentTime(audioRef.current.currentTime);
+          setDuration(audioRef.current.duration);
+        }}
         onEnded={handleEnded}
-        onError={handleError}
-        preload="auto"
-        controls={false}
-        // playsInline is vital for some mobile browsers to allow "inline" playback without fullscreen
-        playsInline
-        // Using anonymous crossOrigin can help with some CDN restrictions and visualizers (if added later)
-        crossOrigin="anonymous"
-        style={{ display: 'none' }}
+        onError={(e) => {
+          console.error("Audio error", e);
+          handleNext(); // Skip if error
+        }}
+        volume={volume}
       />
+
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        songs={songs}
-        playMusic={(track) => playMusic(track, currFolder)}
-        currentSongName={currentSongName}
-        setCurrFolder={(f) => {
-          // If switching to library folders, clear search state
-          setIsSearching(false);
-          loadFolder(f);
-        }}
-        likedSongs={likedSongs}
-        onHome={handleHome}
+        activeView={activeView}
+        playlists={playlists}
+        onCreatePlaylist={createPlaylist}
+        onNavigate={navigateTo}
       />
 
       <MainContent
         setSidebarOpen={setSidebarOpen}
-        likedSongs={likedSongs}
-        onAlbumClick={(f) => {
-          setIsSearching(false); // Clear search
-          handleAlbumClick(f);
-        }}
-        toggleLikeAlbum={toggleLikeAlbum}
-        onSearch={handleSearch}
+        activeView={activeView}
+        viewData={viewData}
+
+        // Content Props
         searchResults={searchResults}
         isSearching={isSearching}
-        onPlayApiSong={(song) => {
-          setSongs(searchResults);
-          setCurrFolder("Search Results");
-          playMusic(song, "Search Results");
-        }}
+        playlists={playlists}
+        likedSongs={likedSongs}
+        recentlyPlayed={recentlyPlayed}
+        trendingSongs={trendingSongs}
+
+        // Actions
+        onSearch={handleSearch}
+        onPlay={(song, context) => playSong(song, context)} // context = list of songs
+        toggleLike={toggleLike}
+        addToPlaylist={addToPlaylist}
+        deletePlaylist={deletePlaylist}
+        currentSong={queue[currentIndex]}
+        onNavigate={navigateTo}
       />
 
       <Playbar
-        currentSongName={currentSongName}
+        currentSong={queue[currentIndex]}
         isPlaying={isPlaying}
-        onPlayPause={() => setIsPlaying(!isPlaying)}
+        onPlayPause={togglePlay}
         onNext={handleNext}
         onPrev={handlePrev}
+
         currentTime={currentTime}
         duration={duration}
+        onSeek={(time) => audioRef.current.currentTime = time}
+
         volume={volume}
-        onVolumeChange={setVolume}
-        onSeek={(percent) => {
-          if (audioRef.current && audioRef.current.duration) {
-            audioRef.current.currentTime = (audioRef.current.duration * percent) / 100;
-          }
+        onVolumeChange={(v) => { setVolume(v); audioRef.current.volume = v; }}
+
+        loopMode={loopMode}
+        toggleLoop={() => setLoopMode(prev => prev === 'off' ? 'all' : (prev === 'all' ? 'one' : 'off'))}
+
+        isShuffle={isShuffle}
+        toggleShuffle={() => {
+          setIsShuffle(!isShuffle);
+          if (!isShuffle && queue.length > 0) generateShuffleIndices(queue.length);
         }}
       />
     </div>
