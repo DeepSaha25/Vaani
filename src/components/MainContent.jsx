@@ -22,7 +22,7 @@ const HeartIcon = ({ filled, onClick }) => (
 );
 
 const TrashIcon = ({ onClick }) => (
-    <div onClick={(e) => { e.stopPropagation(); onClick && onClick(); }} className="cursor-pointer hover:text-red-500 text-gray-400">
+    <div onClick={(e) => { e.stopPropagation(); onClick && onClick(); }} className="cursor-pointer hover:text-red-500 text-gray-400 px-2 py-1">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -31,11 +31,34 @@ const TrashIcon = ({ onClick }) => (
 );
 
 // Sub-components
-const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove }) => {
+const AddToPlaylistMenu = ({ playlists, onAdd, onClose }) => (
+    <div className="absolute right-0 bottom-full mb-2 bg-[#282828] p-2 rounded shadow-xl min-w-[160px] z-50 flex flex-col gap-1 max-h-48 overflow-y-auto border border-white/10">
+        <div className="text-xs text-gray-400 px-2 pb-1 border-b border-white/10 mb-1 font-bold uppercase tracking-wider">Add to Playlist</div>
+        {playlists.length > 0 ? playlists.map(pl => (
+            <div
+                key={pl.id}
+                className="px-2 py-2 hover:bg-white/10 cursor-pointer text-sm rounded bg-[#333] mb-1 last:mb-0 truncate transition"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onAdd(pl.id);
+                    if (onClose) onClose();
+                }}
+            >
+                {pl.name}
+            </div>
+        )) : (
+            <div className="px-2 py-1 text-xs text-gray-500 italic">No playlists created</div>
+        )}
+    </div>
+);
+
+const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist }) => {
+    const [showMenu, setShowMenu] = useState(false);
     return (
         <div
             className={`song-row flex items-center p-2 rounded-md cursor-pointer hover:bg-white/10 ${isCurrent ? 'bg-white/20' : ''}`}
             onClick={() => onPlay()}
+            onMouseLeave={() => setShowMenu(false)}
         >
             <span className="w-8 text-center text-gray-400">{index + 1}</span>
             <img src={song.image || 'img/cover.jpg'} alt="" className="w-10 h-10 rounded mr-4 object-cover" />
@@ -43,30 +66,64 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
                 <div className={`font-medium ${isCurrent ? 'text-green-400' : 'text-white'}`}>{song.name}</div>
                 <div className="text-sm text-gray-400">{song.artist}</div>
             </div>
-            <div className="flex items-center gap-4 mr-4">
+            <div className="flex items-center gap-4 mr-4 relative">
                 <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
-                {onRemove && <TrashIcon onClick={() => onRemove(song)} />}
+                {onRemove ? (
+                    <TrashIcon onClick={() => onRemove(song)} />
+                ) : (
+                    <div className="relative" onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}>
+                        <div className="p-2 hover:bg-white/10 rounded-full transition">
+                            <span className="text-gray-400 hover:text-white text-xl leading-none">⋮</span>
+                        </div>
+                        {showMenu && (
+                            <AddToPlaylistMenu
+                                playlists={playlists}
+                                onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
+                                onClose={() => setShowMenu(false)}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
             <span className="text-sm text-gray-400 hidden md:block">{song.album || 'Single'}</span>
         </div>
     );
 };
 
-const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists }) => (
-    <div className="min-w-[150px] w-[150px] md:w-[180px] bg-[#181818] rounded-md p-3 hover:bg-[#282828] transition cursor-pointer group flex flex-col" onClick={() => onPlay(song, [song])}>
-        <div className="mb-3 relative w-full aspect-square">
-            <img src={song.image} className="w-full h-full object-cover rounded shadow-lg" alt="" />
-            <div className="absolute right-2 bottom-2 bg-green-500 rounded-full p-2 opacity-0 group-hover:opacity-100 transition shadow-xl translate-y-2 group-hover:translate-y-0 text-black">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists }) => {
+    const [showMenu, setShowMenu] = useState(false);
+    return (
+        <div
+            className="min-w-[150px] w-[150px] md:w-[180px] bg-[#181818] rounded-md p-3 hover:bg-[#282828] transition cursor-pointer group flex flex-col relative"
+            onClick={() => onPlay(song, [song])}
+            onMouseLeave={() => setShowMenu(false)}
+        >
+            <div className="mb-3 relative w-full aspect-square">
+                <img src={song.image} className="w-full h-full object-cover rounded shadow-lg" alt="" />
+                <div className="absolute right-2 bottom-2 bg-green-500 rounded-full p-2 opacity-0 group-hover:opacity-100 transition shadow-xl translate-y-2 group-hover:translate-y-0 text-black">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                </div>
+            </div>
+            <h3 className="font-bold truncate mb-1 text-sm md:text-base">{song.name}</h3>
+            <p className="text-xs md:text-sm text-gray-400 truncate">{song.artist}</p>
+            <div className="mt-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition items-center relative z-10 w-full">
+                <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
+                <div className="relative" onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}>
+                    <div className="p-1 hover:bg-white/10 rounded-full transition">
+                        <span className="text-gray-400 hover:text-white text-xl px-1">⋮</span>
+                    </div>
+                    {showMenu && (
+                        <AddToPlaylistMenu
+                            playlists={playlists}
+                            onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
+                            onClose={() => setShowMenu(false)}
+                        />
+                    )}
+                </div>
             </div>
         </div>
-        <h3 className="font-bold truncate mb-1 text-sm md:text-base">{song.name}</h3>
-        <p className="text-xs md:text-sm text-gray-400 truncate">{song.artist}</p>
-        <div className="mt-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition">
-            <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
-        </div>
-    </div>
-);
+    );
+};
 
 
 const MainContent = ({
@@ -145,12 +202,11 @@ const MainContent = ({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => {
-                        if (searchTerm) onSearch(searchTerm); // Trigger search view on focus/click if text exists
+                        if (searchTerm) onSearch(searchTerm);
                     }}
                 />
             </div>
 
-            {/* Spacer for centering logic on desktop effectively pushes search box */}
             <div className="w-8 md:w-0"></div>
         </div>
     );
@@ -233,7 +289,9 @@ const MainContent = ({
                                     onPlay={() => onPlay(songs[i], songs)}
                                     isLiked={likedSongs.some(s => s.id === song.id)}
                                     toggleLike={toggleLike}
-                                    onRemove={activeView === 'playlist' ? (s) => { /* remove logic */ } : null}
+                                    onRemove={activeView === 'playlist' ? (s) => { /* remove logic via App */ } : null}
+                                    playlists={playlists}
+                                    addToPlaylist={addToPlaylist}
                                 />
                             ))}
                             {songs.length === 0 && <p className="text-gray-500 italic mt-10 text-center">It's a bit empty here...</p>}
@@ -260,6 +318,7 @@ const MainContent = ({
                                     song={song}
                                     isLiked={likedSongs.some(s => s.id === song.id)}
                                     toggleLike={toggleLike}
+                                    addToPlaylist={addToPlaylist}
                                     playlists={playlists}
                                     onPlay={onPlay}
                                 />
@@ -285,6 +344,7 @@ const MainContent = ({
                                         song={song}
                                         isLiked={likedSongs.some(s => s.id === song.id)}
                                         toggleLike={toggleLike}
+                                        addToPlaylist={addToPlaylist}
                                         playlists={playlists}
                                         onPlay={onPlay}
                                     />
@@ -301,6 +361,7 @@ const MainContent = ({
                                         song={song}
                                         isLiked={likedSongs.some(s => s.id === song.id)}
                                         toggleLike={toggleLike}
+                                        addToPlaylist={addToPlaylist}
                                         playlists={playlists}
                                         onPlay={onPlay}
                                     />

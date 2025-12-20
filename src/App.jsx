@@ -41,6 +41,7 @@ function App() {
 
   // --- Load Data from Storage ---
   const [trendingSongs, setTrendingSongs] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // --- Load Data from Storage ---
   useEffect(() => {
@@ -54,14 +55,16 @@ function App() {
     load(STORAGE_KEYS.RECENT, setRecentlyPlayed);
     load(STORAGE_KEYS.PLAYLISTS, setPlaylists);
 
+    setIsLoaded(true);
+
     // Fetch Trending
     searchSongs("Trending Hindi").then(res => setTrendingSongs(res.slice(0, 10)));
   }, []);
 
   // --- Save Data to Storage ---
-  useEffect(() => localStorage.setItem(STORAGE_KEYS.LIKED, JSON.stringify(likedSongs)), [likedSongs]);
-  useEffect(() => localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentlyPlayed)), [recentlyPlayed]);
-  useEffect(() => localStorage.setItem(STORAGE_KEYS.PLAYLISTS, JSON.stringify(playlists)), [playlists]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(STORAGE_KEYS.LIKED, JSON.stringify(likedSongs)); }, [likedSongs, isLoaded]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentlyPlayed)); }, [recentlyPlayed, isLoaded]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(STORAGE_KEYS.PLAYLISTS, JSON.stringify(playlists)); }, [playlists, isLoaded]);
 
   // --- Core Playback Functions ---
 
