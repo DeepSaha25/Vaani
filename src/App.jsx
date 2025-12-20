@@ -22,7 +22,7 @@ function App() {
   // --- Queue & Playback Logic ---
   const [queue, setQueue] = useState([]); // List of song objects
   const [currentIndex, setCurrentIndex] = useState(-1);
-  const [loopMode, setLoopMode] = useState('off'); // 'off', 'all', 'one'
+  const [loopMode, setLoopMode] = useState('all'); // 'off', 'all', 'one'
   const [isShuffle, setIsShuffle] = useState(false);
   const [shuffledIndices, setShuffledIndices] = useState([]); // Array of indices mapping for shuffle
 
@@ -160,7 +160,26 @@ function App() {
       const currentShufflePos = shuffledIndices.indexOf(currentIndex);
       if (currentShufflePos === -1 || currentShufflePos >= queue.length - 1) {
         // End of shuffle, loop or stop
-        if (loopMode !== 'off') nextIndex = shuffledIndices[0];
+        if (loopMode === 'all') {
+          // Autoplay: Add random trending
+          if (trendingSongs.length > 0) {
+            const randomSong = trendingSongs[Math.floor(Math.random() * trendingSongs.length)];
+            // Prevent duplicate if it's the exact same song just played? allow for now.
+            // We need to add to queue and update indices
+            // BUT we can't easily modify queue state and immediately see it in this closure if we rely on it for nextIndex
+            // So we will setQueue and let the effect/render cycle handle it?
+            // No, we need to play it immediately.
+            const newQueue = [...queue, randomSong];
+            setQueue(newQueue);
+
+            // If shuffle is on, we need to add the new index to shuffledIndices
+            setShuffledIndices(prev => [...prev, newQueue.length - 1]);
+
+            nextIndex = newQueue.length - 1;
+          } else {
+            nextIndex = shuffledIndices[0];
+          }
+        }
         else { setIsPlaying(false); return; }
       } else {
         nextIndex = shuffledIndices[currentShufflePos + 1];
@@ -168,7 +187,23 @@ function App() {
     } else {
       // Normal
       if (currentIndex >= queue.length - 1) {
-        if (loopMode !== 'off') nextIndex = 0;
+        if (loopMode === 'all') {
+          // Autoplay logic
+          if (trendingSongs.length > 0) {
+            let randomSong = trendingSongs[Math.floor(Math.random() * trendingSongs.length)];
+            // Minimize immediate repetitions if possible
+            if (randomSong.id === queue[currentIndex]?.id && trendingSongs.length > 1) {
+              const others = trendingSongs.filter(s => s.id !== randomSong.id);
+              randomSong = others[Math.floor(Math.random() * others.length)];
+            }
+
+            const newQueue = [...queue, randomSong];
+            setQueue(newQueue);
+            nextIndex = newQueue.length - 1;
+          } else {
+            nextIndex = 0;
+          }
+        }
         else { setIsPlaying(false); return; }
       } else {
         nextIndex = currentIndex + 1;
@@ -176,7 +211,7 @@ function App() {
     }
     setCurrentIndex(nextIndex);
     setIsPlaying(true);
-  }, [queue, currentIndex, isShuffle, loopMode, shuffledIndices]);
+  }, [queue, currentIndex, isShuffle, loopMode, shuffledIndices, trendingSongs]);
 
 
   const handlePrev = useCallback(() => {
