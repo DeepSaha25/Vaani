@@ -1,4 +1,4 @@
-import React from 'react';
+// ... (imports)
 
 const Sidebar = ({
     sidebarOpen,
@@ -27,25 +27,24 @@ const Sidebar = ({
                     aria-label="Close sidebar"
                     onClick={() => setSidebarOpen(false)}
                 >
-                    <img className="invert" src="/img/close.svg" alt="Close" />
+                    <img className="invert" src="img/close.svg" alt="Close" />
                 </div>
 
                 <div className="home bg-grey rounded m-1 p-1">
                     <div className="logo">
-                        <img src="/img/unnamed-removebg-preview.png" alt="TuneMate Logo" />
+                        <img src="img/unnamed-removebg-preview.png" alt="TuneMate Logo" />
                         <p>TuneMate</p>
                     </div>
                     <ul>
                         <li onClick={() => window.location.reload()}>
-                            {/* Original just had Home, keeping it simple or maybe reset view? For now acts as reset */}
-                            <img className="invert" src="/img/home.svg" alt="Home" />Home
+                            <img className="invert" src="img/home.svg" alt="Home" />Home
                         </li>
                     </ul>
                 </div>
 
                 <div className="library bg-grey rounded m-1 p-1">
                     <div className="heading">
-                        <img className="invert" src="/img/playlist.svg" alt="Your Library" />
+                        <img className="invert" src="img/playlist.svg" alt="Your Library" />
                         <h2>Your Library</h2>
                     </div>
 
@@ -84,8 +83,17 @@ const Sidebar = ({
                                 </li>
                             ) : (
                                 songs.map((song, index) => {
-                                    const songDisplayName = song.replaceAll("%20", " ").replace(".mp3", "");
-                                    const isActive = currentSongName && decodeURI(currentSongName).includes(songDisplayName);
+                                    let songDisplayName = "";
+                                    let isActive = false;
+
+                                    if (typeof song === 'string') {
+                                        songDisplayName = song.replaceAll("%20", " ").replace(".mp3", "");
+                                        isActive = currentSongName && decodeURI(currentSongName).includes(songDisplayName);
+                                    } else {
+                                        // API Song Object
+                                        songDisplayName = song.name;
+                                        isActive = currentSongName === song.name;
+                                    }
 
                                     return (
                                         <li
@@ -98,13 +106,14 @@ const Sidebar = ({
                                                 if (e.key === 'Enter' || e.key === ' ') handleSongClick(song);
                                             }}
                                         >
-                                            <img className="invert" width="24" src="/img/music.svg" alt="Music icon" />
+                                            <img className="invert" width="24" src="img/music.svg" alt="Music icon" />
                                             <div className="info">
                                                 <div>{songDisplayName}</div>
+                                                {typeof song !== 'string' && <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{song.artist}</div>}
                                             </div>
                                             <div className="playnow">
                                                 <span>Play Now</span>
-                                                <img width="24" className="invert" src="/img/play.svg" alt="Play now" />
+                                                <img width="24" className="invert" src="img/play.svg" alt="Play now" />
                                             </div>
                                         </li>
                                     );

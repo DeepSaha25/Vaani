@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
 import { folderSongs, albums as folderOrder } from './data/songs';
+import { searchSongs } from './api/music';
 
 function App() {
   const [songs, setSongs] = useState([]);
@@ -14,6 +15,10 @@ function App() {
   const [volume, setVolume] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [likedSongs, setLikedSongs] = useState([]); // Stores full paths: "songs/Folder/Song.mp3"
+
+  // Search State
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const audioRef = useRef(new Audio());
   const lastVolumeRef = useRef(1);
@@ -79,24 +84,42 @@ function App() {
     if (folder === 'Liked Songs') {
       return likedSongs.find(path => path.endsWith('/' + trackName));
     } else {
-      return `/songs/${folder}/${trackName}`;
+      return `songs/${folder}/${trackName}`;
     }
   };
 
-  const playMusic = useCallback((trackName, folder = currFolder) => {
-    if (!trackName) return;
+  const playMusic = useCallback((track, folder = currFolder) => {
+    if (!track) return;
 
-    // If getting ready to play, ensure we have the songs loaded for that folder if changed
-    if (folder !== currFolder) {
-      loadFolder(folder);
-      // We need to wait for state update? No, just use local var if needed, 
-      // but since we passed folder explicitly we can determine path.
+    // Determine if track is an API object or a string filename
+    let src;
+    let trackName;
+
+    if (typeof track === 'object' && track.isApiSong) {
+      src = track.url;
+      trackName = track.name;
+
+      if (isSearching) {
+        setSongs(searchResults);
+        setCurrFolder("Search Results");
+      }
+    } else {
+      // Local file
+      trackName = track; // It's a string
+
+      // Ensure folder logic
+      if (folder !== currFolder && folder !== "Search Results") {
+        loadFolder(folder);
+      }
+      src = getFullPath(track, folder);
     }
 
-    const path = getFullPath(trackName, folder);
-    if (!path) return;
+    if (!src) {
+      console.error("No source found for track:", track);
+      return;
+    }
 
-    audioRef.current.src = path;
+    audioRef.current.src = src;
     setCurrentSongName(trackName);
 
     // Explicitly try to play when changing tracks
@@ -111,7 +134,7 @@ function App() {
     } else {
       setIsPlaying(true);
     }
-  }, [currFolder, likedSongs, loadFolder]);
+  }, [currFolder, likedSongs, loadFolder, isSearching, searchResults]);
 
 
   // Next/Prev Logic
@@ -127,18 +150,27 @@ function App() {
   // Actually, re-attaching listeners is cheap.
   // But let's try to keep it simple.
 
-  // Re-write event listener effect to depend on the Next logic dependencies
-  useEffect(() => {
-    const audio = audioRef.current;
-    const onEnded = () => handleNext();
-    audio.addEventListener('ended', onEnded);
-    return () => audio.removeEventListener('ended', onEnded);
-  }, [songs, currFolder, currentSongName]); // Re-bind when playlist changes
+  // Handle Search
+  const handleSearch = async (query) => {
+    if (!query) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    const results = await searchSongs(query);
+    setSearchResults(results);
+  };
 
   const handleNext = async () => {
     if (!songs || songs.length === 0) return;
 
-    const currentTrackIndex = songs.indexOf(currentSongName);
+    // Find index. 
+    // If songs contains objects (API), currentSongName matches obj.name
+    // If songs contains strings (Local), currentSongName matches string
+    const currentTrackIndex = songs.findIndex(s => {
+      return (typeof s === 'string' ? s : s.name) === currentSongName;
+    });
 
     // 1. Next in current list
     if (currentTrackIndex !== -1 && currentTrackIndex + 1 < songs.length) {
@@ -146,36 +178,41 @@ function App() {
       return;
     }
 
-    // 2. End of list
-    if (currFolder === 'Liked Songs') {
+    // 2. End of list logic...
+    if (currFolder === 'Liked Songs' || currFolder === 'Search Results') {
       setIsPlaying(false); // Stop
       return;
     }
 
-    // 3. Next Album
-    const currentAlbumIndex = folderOrder.indexOf(currFolder);
-    if (currentAlbumIndex !== -1 && currentAlbumIndex + 1 < folderOrder.length) {
-      const nextAlbum = folderOrder[currentAlbumIndex + 1];
-      const nextSongs = folderSongs[nextAlbum]; // Directly access data
-      if (nextSongs && nextSongs.length > 0) {
-        // Update state
-        setCurrFolder(nextAlbum);
-        setSongs(nextSongs);
-        playMusic(nextSongs[0], nextAlbum);
+    // 3. Next Album logic (only for local folders)
+    if (folderOrder.includes(currFolder)) {
+      const currentAlbumIndex = folderOrder.indexOf(currFolder);
+      if (currentAlbumIndex !== -1 && currentAlbumIndex + 1 < folderOrder.length) {
+        const nextAlbum = folderOrder[currentAlbumIndex + 1];
+        const nextSongs = folderSongs[nextAlbum];
+        if (nextSongs && nextSongs.length > 0) {
+          setCurrFolder(nextAlbum);
+          setSongs(nextSongs);
+          playMusic(nextSongs[0], nextAlbum);
+        }
+      } else {
+        setIsPlaying(false);
       }
     } else {
-      setIsPlaying(false); // End of all albums
+      setIsPlaying(false);
     }
   };
 
   const handlePrev = () => {
     if (!songs || songs.length === 0) return;
-    const currentTrackIndex = songs.indexOf(currentSongName);
+    const currentTrackIndex = songs.findIndex(s => {
+      return (typeof s === 'string' ? s : s.name) === currentSongName;
+    });
 
     if (currentTrackIndex === -1) {
       playMusic(songs[0], currFolder);
     } else if (currentTrackIndex - 1 < 0) {
-      playMusic(songs[songs.length - 1], currFolder); // Loop to last? Original did this.
+      playMusic(songs[songs.length - 1], currFolder);
     } else {
       playMusic(songs[currentTrackIndex - 1], currFolder);
     }
@@ -242,15 +279,33 @@ function App() {
         songs={songs}
         playMusic={(track) => playMusic(track, currFolder)}
         currentSongName={currentSongName}
-        setCurrFolder={(f) => loadFolder(f)}
+        setCurrFolder={(f) => {
+          // If switching to library folders, clear search state
+          setIsSearching(false);
+          loadFolder(f);
+        }}
         likedSongs={likedSongs}
       />
 
       <MainContent
         setSidebarOpen={setSidebarOpen}
         likedSongs={likedSongs}
-        onAlbumClick={handleAlbumClick}
+        onAlbumClick={(f) => {
+          setIsSearching(false); // Clear search when clicking album
+          handleAlbumClick(f);
+        }}
         toggleLikeAlbum={toggleLikeAlbum}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        isSearching={isSearching}
+        onPlayApiSong={(song) => {
+          // When playing from click in search results
+          // We want to update the playlist context?
+          // Yes, set playlist to searchResults
+          setSongs(searchResults);
+          setCurrFolder("Search Results");
+          playMusic(song, "Search Results");
+        }}
       />
 
       <Playbar

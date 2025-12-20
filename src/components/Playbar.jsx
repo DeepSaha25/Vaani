@@ -60,7 +60,7 @@ const Playbar = ({
                         aria-label="Previous song"
                         id="previous"
                         className="invert"
-                        src="/img/prevsong.svg"
+                        src="img/prevsong.svg"
                         alt="Previous"
                         onClick={onPrev}
                     />
@@ -69,7 +69,7 @@ const Playbar = ({
                         aria-label={isPlaying ? "Pause song" : "Play song"}
                         id="play"
                         className="invert"
-                        src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
+                        src={isPlaying ? "img/pause.svg" : "img/play.svg"}
                         alt="Play"
                         onClick={onPlayPause}
                     />
@@ -78,7 +78,7 @@ const Playbar = ({
                         aria-label="Next song"
                         id="next"
                         className="invert"
-                        src="/img/nextsong.svg"
+                        src="img/nextsong.svg"
                         alt="Next"
                         onClick={onNext}
                     />
@@ -92,7 +92,7 @@ const Playbar = ({
                             role="button"
                             aria-label="Mute/Unmute"
                             className="invert"
-                            src={volume === 0 ? "/img/mute.svg" : "/img/volume.svg"}
+                            src={volume === 0 ? "img/mute.svg" : "img/volume.svg"}
                             alt="Volume"
                             onClick={() => onVolumeChange(volume > 0 ? 0 : 1)} // Simple toggle, ideally remember last volume
                         />

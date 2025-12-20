@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { albums as albumFolders, folderSongs } from '../data/songs';
+import React, { useState, useEffect } from 'react';
+import { folderSongs, albums as albumFolders } from '../data/songs';
 
-const heartOutlinePath = "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z";
-const heartFilledPath = "M12 21.23l-1.06-1.06a5.5 5.5 0 0 1-7.78-7.78l1.06-1.06L12 5.67l1.06-1.06a5.5 5.5 0 0 1 7.78 7.78l-1.06 1.06L12 21.23z";
+// Icons paths (using relative paths now)
+const heartOutlinePath = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+const heartFilledPath = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
-const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs }) => {
+const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs, onSearch, searchResults, isSearching, onPlayApiSong }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [albumData, setAlbumData] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +24,7 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
             const data = [];
             for (const folder of albumFolders) {
                 try {
-                    const res = await fetch(`/songs/${folder}/info.json`);
+                    const res = await fetch(`songs/${folder}/info.json`);
                     if (res.ok) {
                         const info = await res.json();
                         data.push({ folder, ...info });
@@ -46,30 +47,25 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
         fetchAlbums();
     }, []);
 
+    // Debounce search for API
+    useEffect(() => {
+        // We only want to trigger API search if query is non-empty, OR properly handle empty.
+        // And we also use searchTerm for local filtering.
+        if (onSearch) {
+            const timer = setTimeout(() => {
+                onSearch(searchTerm);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [searchTerm, onSearch]);
+
+
     const filteredAlbums = albumData.filter(album =>
         album.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         album.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const isAlbumLiked = (folderName) => {
-        // Check if ALL songs in this album are in likedSongs?
-        // Original logic: "if isLiked... add all songs... else remove all songs"
-        // The visual state was just toggled on click.
-        // Ideally we check if *any* or *all* are liked.
-        // Original code: `const isLiked = likeButton.classList.toggle('liked');` - it was purely UI state driven initially, then synced.
-        // But `likedSongs` array is the source of truth for playback.
-        // Let's rely on whether the songs are in the liked list.
-        // Actually, checking if *all* songs are liked is expensive?
-        // Let's just track it via a prop or derivation?
-        // For simplicity, I'll implementation `isAlbumLiked` by checking if the first song of the album is in likedSongs?
-        // No, `toggleLikeAlbum` helps us manage the state.
-        // Let's assume passed in `likedSongs` contains full paths `songs/Folder/Song.mp3`.
-        // If the album is "liked", maybe we just check if any song from it is there?
-        // Or just store "likedAlbums" separately?
-        // The PROMPT requirement is to convert, so let's stick to original logic:
-        // Original logic: toggle adds/removes ALL songs. 
-        // We can check if the first song is present to determine "liked" state for the Heart icon.
-
         const songs = folderSongs[folderName];
         if (!songs || songs.length === 0) return false;
         const firstSongPath = `songs/${folderName}/${songs[0]}`;
@@ -86,7 +82,7 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
                             aria-label="Open sidebar"
                             width="30"
                             className="invert hamburger"
-                            src="/img/hamburger.svg"
+                            src="img/hamburger.svg"
                             alt="Menu"
                         />
                     </div>
@@ -97,11 +93,11 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
                 </div>
 
                 <div className="search-bar" role="search">
-                    <img className="invert" src="/img/search.svg" alt="Search Icon" />
+                    <img className="invert" src="img/search.svg" alt="Search Icon" />
                     <input
                         type="text"
-                        placeholder="Search for albums..."
-                        aria-label="Search for albums"
+                        placeholder="Search for songs..."
+                        aria-label="Search for songs"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -110,49 +106,78 @@ const MainContent = ({ setSidebarOpen, onAlbumClick, toggleLikeAlbum, likedSongs
 
             <div className="main-content">
                 <div className="spotifyPlaylists">
-                    <h1>You click it, You tune it!</h1>
+                    <h1>{isSearching ? "Search Results" : "You click it, You tune it!"}</h1>
                     <div className="cardContainer">
-                        {filteredAlbums.map((album) => {
-                            const liked = isAlbumLiked(album.folder);
-                            return (
-                                <div
-                                    key={album.folder}
-                                    className="card"
-                                    role="button"
-                                    tabIndex="0"
-                                    onClick={() => onAlbumClick(album.folder)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') onAlbumClick(album.folder);
-                                    }}
-                                >
-                                    <div className="play">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" strokeWidth="1.5" strokeLinejoin="round" />
-                                        </svg>
-                                    </div>
+                        {isSearching ? (
+                            searchResults.length > 0 ? (
+                                searchResults.map((song) => (
                                     <div
-                                        className={`like-btn ${liked ? 'liked' : ''}`}
+                                        key={song.id}
+                                        className="card"
                                         role="button"
-                                        aria-label="Like album"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleLikeAlbum(album.folder);
+                                        tabIndex="0"
+                                        onClick={() => onPlayApiSong(song)}
+                                    >
+                                        <div className="play">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" strokeWidth="1.5" strokeLinejoin="round" />
+                                            </svg>
+                                        </div>
+                                        <img
+                                            src={song.image || 'img/cover.jpg'}
+                                            alt={song.name}
+                                            onError={(e) => { e.target.src = 'img/cover.jpg'; }}
+                                        />
+                                        <h2>{song.name}</h2>
+                                        <p>{song.artist}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No results found for "{searchTerm}"</p>
+                            )
+                        ) : (
+                            filteredAlbums.map((album) => {
+                                const liked = isAlbumLiked(album.folder);
+                                return (
+                                    <div
+                                        key={album.folder}
+                                        className="card"
+                                        role="button"
+                                        tabIndex="0"
+                                        onClick={() => onAlbumClick(album.folder)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') onAlbumClick(album.folder);
                                         }}
                                     >
-                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path d={liked ? heartFilledPath : heartOutlinePath}></path>
-                                        </svg>
+                                        <div className="play">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" strokeWidth="1.5" strokeLinejoin="round" />
+                                            </svg>
+                                        </div>
+                                        <div
+                                            className={`like-btn ${liked ? 'liked' : ''}`}
+                                            role="button"
+                                            aria-label="Like album"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleLikeAlbum(album.folder);
+                                            }}
+                                        >
+                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path d={liked ? heartFilledPath : heartOutlinePath}></path>
+                                            </svg>
+                                        </div>
+                                        <img
+                                            src={`songs/${album.folder}/cover.jpg`}
+                                            alt={album.title}
+                                            onError={(e) => { e.target.src = 'img/cover.jpg'; }}
+                                        />
+                                        <h2>{album.title}</h2>
+                                        <p>{album.description}</p>
                                     </div>
-                                    <img
-                                        src={`/songs/${album.folder}/cover.jpg`}
-                                        alt={album.title}
-                                        onError={(e) => { e.target.src = '/img/cover.jpg'; }}
-                                    />
-                                    <h2>{album.title}</h2>
-                                    <p>{album.description}</p>
-                                </div>
-                            );
-                        })}
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>
