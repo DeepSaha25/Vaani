@@ -1,0 +1,21 @@
+{
+    "name": "TuneMate",
+    "short_name": "TuneMate",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#111827",
+    "theme_color": "#111827",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/img/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/img/icon-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}
