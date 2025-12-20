@@ -1,6 +1,6 @@
 export const searchSongs = async (query) => {
   try {
-    const response = await fetch(`https://jiosaavn-api-lemon.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
+    const response = await fetch(`https://saavn.sumit.co/api/search/songs?query=${encodeURIComponent(query)}`);
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
