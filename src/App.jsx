@@ -145,7 +145,7 @@ function App() {
 
 
   // Handle Search
-  const handleSearch = async (query) => {
+  const handleSearch = useCallback(async (query) => {
     if (!query) {
       setIsSearching(false);
       setSearchResults([]);
@@ -154,9 +154,9 @@ function App() {
     setIsSearching(true);
     const results = await searchSongs(query);
     setSearchResults(results);
-  };
+  }, []);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!songs || songs.length === 0) return;
 
     // Find index. 
@@ -193,9 +193,9 @@ function App() {
     } else {
       setIsPlaying(false);
     }
-  };
+  }, [songs, currentSongName, currFolder, playMusic]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (!songs || songs.length === 0) return;
     const currentTrackIndex = songs.findIndex(s => {
       return (typeof s === 'string' ? s : s.name) === currentSongName;
@@ -208,7 +208,7 @@ function App() {
     } else {
       playMusic(songs[currentTrackIndex - 1], currFolder);
     }
-  };
+  }, [songs, currentSongName, currFolder, playMusic]);
 
 
   // Toggle Like Album
