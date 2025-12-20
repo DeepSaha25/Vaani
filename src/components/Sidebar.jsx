@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 // Inline Icons
 const HomeIcon = ({ active }) => (
@@ -38,6 +38,14 @@ const HeartIcon = () => (
 );
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreatePlaylist, onNavigate }) => {
+    const [isCreating, setIsCreating] = useState(false);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (isCreating && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isCreating]);
 
     return (
         <>
@@ -91,8 +99,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                             className="hover:bg-[#2a2a2a] p-1 rounded-full text-white cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                const name = prompt("Playlist Name:");
-                                if (name) onCreatePlaylist(name);
+                                setIsCreating(true);
                             }}
                         >
                             <PlusIcon />
@@ -112,6 +119,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                                 <span className="text-xs">Playlist</span>
                             </div>
                         </div>
+
+                        {/* Reference for new playlist input */}
+                        {isCreating && (
+                            <div className="flex items-center gap-3 p-2 rounded-md bg-[#282828] mx-0">
+                                <div className="w-12 h-12 bg-[#282828] rounded flex items-center justify-center text-xl">🎵</div>
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    className="bg-transparent text-white text-sm font-semibold w-full outline-none border-b border-purple-500 placeholder-gray-500"
+                                    placeholder="Playlist Name"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            if (e.target.value.trim()) {
+                                                onCreatePlaylist(e.target.value.trim());
+                                                setIsCreating(false);
+                                            }
+                                        }
+                                        if (e.key === 'Escape') setIsCreating(false);
+                                    }}
+                                    onBlur={() => setIsCreating(false)}
+                                />
+                            </div>
+                        )}
 
                         {/* Playlists */}
                         {playlists.map(pl => (

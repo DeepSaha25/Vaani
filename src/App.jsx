@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
-import { searchSongs } from './api/music';
+import { searchSongs, getTrendingSongs } from './api/music';
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -58,7 +58,7 @@ function App() {
     setIsLoaded(true);
 
     // Fetch Trending
-    searchSongs("Trending Hindi").then(res => setTrendingSongs(res.slice(0, 10)));
+    getTrendingSongs().then(res => setTrendingSongs(res));
   }, []);
 
   // --- Save Data to Storage ---

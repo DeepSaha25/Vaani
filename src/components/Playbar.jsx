@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 
 // Icons
 const ShuffleIcon = ({ active }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? "#1db954" : "#b3b3b3"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? "#a855f7" : "#b3b3b3"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="16 3 21 3 21 8"></polyline>
         <line x1="4" y1="20" x2="21" y2="3"></line>
         <polyline points="21 16 21 21 16 21"></polyline>
@@ -13,7 +13,7 @@ const ShuffleIcon = ({ active }) => (
 
 const LoopIcon = ({ mode }) => {
     // mode: 'off', 'all', 'one'
-    const color = mode !== 'off' ? "#1db954" : "#b3b3b3";
+    const color = mode !== 'off' ? "#a855f7" : "#b3b3b3";
     return (
         <div className="relative">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -23,7 +23,7 @@ const LoopIcon = ({ mode }) => {
                 <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
             </svg>
             {mode === 'one' && (
-                <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-black text-[#1db954]">1</span>
+                <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-black text-[#a855f7]">1</span>
             )}
         </div>
     );
@@ -117,7 +117,7 @@ const Playbar = ({
                         max={duration || 100}
                         value={currentTime || 0}
                         onChange={(e) => onSeek(e.target.value)}
-                        className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white hover:accent-green-500"
+                        className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white hover:accent-purple-500"
                     />
                     <span className="min-w-[30px] hidden md:block">{formatTime(duration)}</span>
                 </div>

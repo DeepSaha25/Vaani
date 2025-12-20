@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // Icons
 const PlayIcon = () => (
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="11" fill="#1db954" />
+        <circle cx="12" cy="12" r="11" fill="#a855f7" />
         <path d="M10 8L16 12L10 16V8Z" fill="#000" />
     </svg>
 );
@@ -13,8 +13,8 @@ const HeartIcon = ({ filled, onClick }) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
                 d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z"
-                fill={filled ? "#1ED760" : "none"}
-                stroke={filled ? "#1ED760" : "white"}
+                fill={filled ? "#a855f7" : "none"}
+                stroke={filled ? "#a855f7" : "white"}
                 strokeWidth="2"
             />
         </svg>
@@ -63,7 +63,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
             <span className="w-8 text-center text-gray-400">{index + 1}</span>
             <img src={song.image || 'img/cover.jpg'} alt="" className="w-10 h-10 rounded mr-4 object-cover" />
             <div className="flex-1">
-                <div className={`font-medium ${isCurrent ? 'text-green-400' : 'text-white'}`}>{song.name}</div>
+                <div className={`font-medium ${isCurrent ? 'text-purple-400' : 'text-white'}`}>{song.name}</div>
                 <div className="text-sm text-gray-400">{song.artist}</div>
             </div>
             <div className="flex items-center gap-4 mr-4 relative">
@@ -100,7 +100,7 @@ const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists 
         >
             <div className="mb-3 relative w-full aspect-square">
                 <img src={song.image} className="w-full h-full object-cover rounded shadow-lg" alt="" />
-                <div className="absolute right-2 bottom-2 bg-green-500 rounded-full p-2 opacity-0 group-hover:opacity-100 transition shadow-xl translate-y-2 group-hover:translate-y-0 text-black">
+                <div className="absolute right-2 bottom-2 bg-purple-500 rounded-full p-2 opacity-0 group-hover:opacity-100 transition shadow-xl translate-y-2 group-hover:translate-y-0 text-black">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                 </div>
             </div>
@@ -266,7 +266,7 @@ const MainContent = ({
 
                     <div className="min-h-[300px] bg-black/20 backdrop-blur-sm -mx-6 px-6 py-4">
                         <div className="flex justify-between items-center mb-4">
-                            <div className="w-12 h-12 bg-[#1db954] rounded-full flex items-center justify-center hover:scale-105 transition cursor-pointer shadow-lg text-black" onClick={() => songs.length && onPlay(songs[0], songs)}>
+                            <div className="w-12 h-12 bg-[#a855f7] rounded-full flex items-center justify-center hover:scale-105 transition cursor-pointer shadow-lg text-black" onClick={() => songs.length && onPlay(songs[0], songs)}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                             </div>
                             {activeView === 'playlist' && (
@@ -403,7 +403,7 @@ const MainContent = ({
                                     <span className="font-bold text-lg truncate">{pl.name}</span>
                                     <span className="text-xs text-gray-400">Playlist</span>
                                 </div>
-                                <div className="absolute right-4 bg-green-500 rounded-full p-3 opacity-0 group-hover:opacity-100 transition shadow-lg translate-y-2 group-hover:translate-y-0">
+                                <div className="absolute right-4 bg-purple-500 rounded-full p-3 opacity-0 group-hover:opacity-100 transition shadow-lg translate-y-2 group-hover:translate-y-0">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="black"><path d="M8 5v14l11-7z" /></svg>
                                 </div>
                             </div>
