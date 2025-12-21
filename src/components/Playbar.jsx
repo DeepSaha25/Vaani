@@ -60,21 +60,23 @@ const Playbar = ({
         <div className={`fixed bottom-0 left-0 right-0 h-[84px] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
 
             {/* --- Mobile Layout (< md) --- */}
+            {/* --- Mobile Layout (< md) --- */}
             <div className="flex md:hidden flex-col h-full relative">
-                {/* Main Row: Info + Controls */}
-                <div className="flex-1 flex items-center justify-center px-4 relative">
-                    {/* Song Info (Absolute Left) */}
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-[35%] max-w-[140px] z-20 pointer-events-none">
+                {/* Main Row: Grid Layout to prevent overlap */}
+                <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center px-4 gap-2">
+
+                    {/* 1. Song Info (Left) - Truncates properly */}
+                    <div className="min-w-0 pr-2">
                         {currentSong && (
-                            <div className="overflow-hidden pointer-events-auto">
+                            <div className="overflow-hidden">
                                 <div className="text-sm font-bold text-white truncate drop-shadow-md">{currentSong.name}</div>
                                 <div className="text-xs text-gray-300 truncate">{currentSong.artist}</div>
                             </div>
                         )}
                     </div>
 
-                    {/* Controls (Absolute Center) */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-5 z-10">
+                    {/* 2. Controls (Center) - Fixed width, centered */}
+                    <div className="flex items-center justify-center gap-4">
                         <button onClick={toggleShuffle} className="hidden sm:block text-gray-400 hover:text-white transition"><ShuffleIcon active={isShuffle} /></button>
                         <button onClick={onPrev} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
@@ -92,11 +94,13 @@ const Playbar = ({
                         <button onClick={toggleLoop} className="hidden sm:block text-gray-400 hover:text-white transition"><LoopIcon mode={loopMode} /></button>
                     </div>
 
-                    {/* Right Side Toggles */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex sm:hidden gap-3 z-20">
+                    {/* 3. Right Side (Shuffle/Loop on small < sm) or Spacer */}
+                    <div className="flex justify-end gap-3 sm:hidden">
                         <button onClick={toggleShuffle} className="text-gray-300 active:text-white"><ShuffleIcon active={isShuffle} /></button>
                         <button onClick={toggleLoop} className="text-gray-300 active:text-white"><LoopIcon mode={loopMode} /></button>
                     </div>
+                    {/* Spacer for sm+ screens where toggles are in center, to balance Grid */}
+                    <div className="hidden sm:block"></div>
                 </div>
 
                 {/* Progress Bar (Absolute Bottom) */}
