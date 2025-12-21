@@ -65,8 +65,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                 <div className="bg-[#121212] rounded-lg p-5 flex flex-col gap-5">
                     <div className="flex items-center gap-2 px-1 cursor-pointer" onClick={() => onNavigate('home')}>
                         <img src="img/vaanilogo.png" alt="Logo" className="w-8 h-8" />
-                        <span className="font-bold text-white text-xl hidden lg:block">Vaani</span>
-                        <span className="font-bold text-white text-xl lg:hidden">VA</span>
+                        <span className="font-bold text-white text-xl">Vaani</span>
                     </div>
 
                     <div className="flex flex-col gap-4">
