@@ -57,7 +57,6 @@ const Playbar = ({
     };
 
     return (
-    return (
         <div className={`fixed bottom-0 left-0 right-0 h-[84px] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
 
             {/* --- Mobile Layout (< md) --- */}
