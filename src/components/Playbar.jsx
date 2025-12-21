@@ -63,7 +63,7 @@ const Playbar = ({
             {/* --- Mobile Layout (< md) --- */}
             <div className="flex md:hidden flex-col h-full relative">
                 {/* Main Row: Grid Layout to prevent overlap */}
-                <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center px-4 gap-2">
+                <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center px-4 gap-2 pb-2">
 
                     {/* 1. Song Info (Left) - Truncates properly */}
                     <div className="min-w-0 pr-2">
@@ -101,6 +101,14 @@ const Playbar = ({
                     </div>
                     {/* Spacer for sm+ screens where toggles are in center, to balance Grid */}
                     <div className="hidden sm:block"></div>
+                </div>
+
+                {/* Mobile Duration Indicators */}
+                <div className="absolute bottom-[6px] left-2 text-[10px] text-gray-400 font-mono pointer-events-none">
+                    {formatTime(currentTime)}
+                </div>
+                <div className="absolute bottom-[6px] right-2 text-[10px] text-gray-400 font-mono pointer-events-none">
+                    {formatTime(duration)}
                 </div>
 
                 {/* Progress Bar (Absolute Bottom) */}

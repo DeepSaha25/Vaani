@@ -77,7 +77,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
 
             {/* Duration - Hide on very small screens if needed, usually fine */}
             {song.duration && (
-                <span className="text-sm text-gray-400 font-mono mr-4">{formatTime(song.duration)}</span>
+                <span className="text-sm text-gray-400 font-mono mr-4 whitespace-nowrap">{formatTime(song.duration)}</span>
             )}
 
             <div className="flex items-center gap-4 mr-4 relative">
