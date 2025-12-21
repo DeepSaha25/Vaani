@@ -459,6 +459,7 @@ const MainContent = ({
                                         addToPlaylist={addToPlaylist}
                                         playlists={playlists}
                                         onPlay={onPlay}
+                                        onDownload={onDownload}
                                     />
                                 ))}
                             </div>
