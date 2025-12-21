@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { saveSongToDB, getAllDownloadedSongs, deleteSongFromDB } from '../utils/db';
+// Local imports removed (now in App)
 
 // Icons
 const PlayIcon = () => (
@@ -61,7 +61,7 @@ const formatTime = (seconds) => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist }) => {
+const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist, onDownload, isDownloaded }) => {
     const [showMenu, setShowMenu] = useState(false);
     return (
         <div
@@ -76,13 +76,29 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
                 <div className="text-sm text-gray-400 truncate">{song.artist}</div>
             </div>
 
-            {/* Duration - Hide on very small screens if needed, usually fine */}
+            {/* Duration */}
             {song.duration && (
-                <span className="text-sm text-gray-400 font-mono mr-4 whitespace-nowrap">{formatTime(song.duration)}</span>
+                <span className="text-sm text-gray-400 font-mono mr-4 whitespace-nowrap hidden sm:block">{formatTime(song.duration)}</span>
             )}
 
             <div className="flex items-center gap-4 mr-4 relative">
                 <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
+
+                {/* Download Button */}
+                {onDownload && (
+                    <div
+                        onClick={(e) => { e.stopPropagation(); onDownload(song); }}
+                        className={`cursor-pointer hover:scale-110 transition-transform ${isDownloaded ? 'text-purple-400' : 'text-gray-400 hover:text-white'}`}
+                        title={isDownloaded ? "Downloaded" : "Download"}
+                    >
+                        {isDownloaded ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        )}
+                    </div>
+                )}
+
                 {onRemove ? (
                     <TrashIcon onClick={() => onRemove(song)} />
                 ) : (
@@ -173,73 +189,15 @@ const MainContent = ({
     addToPlaylist,
     deletePlaylist,
     currentSong,
-    onNavigate
+    onNavigate,
+    downloads = [],
+    onDownload,
+    onDeleteDownload
 }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [searchTerm, setSearchTerm] = useState("");
-    const [downloads, setDownloads] = useState([]);
 
-    // --- Effects ---
-    // Fetch downloads when view changes
-    useEffect(() => {
-        if (activeView === 'downloads') {
-            getAllDownloadedSongs().then(setDownloads);
-        }
-    }, [activeView]);
-
-    const handleDownload = async (song) => {
-        try {
-            const confirmed = window.confirm(`Download "${song.name}" for offline play?`);
-            if (!confirmed) return;
-
-            if (!song.url) {
-                alert("Download failed: No URL found.");
-                return;
-            }
-
-            // Toast-like notification
-            const toast = document.createElement("div");
-            toast.innerText = "Downloading...";
-            toast.style.cssText = "position:fixed;bottom:80px;right:20px;background:#a855f7;color:white;padding:12px 24px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3); font-weight:bold;";
-            document.body.appendChild(toast);
-
-            const response = await fetch(song.url);
-            const blob = await response.blob();
-
-            // 1. Save to DB (In-App Offline)
-            await saveSongToDB(song, blob);
-
-            // 2. Trigger File Download (Local File)
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${song.name}.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-
-            toast.innerText = "Downloaded successfully!";
-            setTimeout(() => toast.remove(), 3000);
-
-            // Update state if viewing downloads
-            if (activeView === 'downloads') {
-                const updated = await getAllDownloadedSongs();
-                setDownloads(updated);
-            }
-        } catch (e) {
-            console.error("Download failed", e);
-            alert("Download failed. Please try again.");
-            const t = document.querySelector('div[style*="position:fixed;bottom:80px"]');
-            if (t) t.remove();
-        }
-    };
-
-    const handleDeleteDownload = async (song) => {
-        if (window.confirm(`Remove "${song.name}" from offline storage?`)) {
-            await deleteSongFromDB(song.id);
-            setDownloads(prev => prev.filter(s => s.id !== song.id));
-        }
-    };
+    // removed local downloads state and handlers
 
     useEffect(() => {
         const h = new Date().getHours();
@@ -291,8 +249,8 @@ const MainContent = ({
                 </div>
                 <input
                     type="text"
-                    placeholder="What do you want to play?"
-                    className="w-full bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white rounded-full pl-10 pr-4 py-3 text-sm outline-none border border-transparent focus:border-white/20 transition-all placeholder-gray-400 backdrop-blur-sm shadow-inner"
+                    placeholder="Search songs..."
+                    className="w-full bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white rounded-full pl-10 pr-4 py-2.5 text-sm outline-none border border-transparent focus:border-white/20 transition-all placeholder-gray-400 backdrop-blur-sm shadow-inner"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => {
@@ -324,7 +282,7 @@ const MainContent = ({
                                     addToPlaylist={addToPlaylist}
                                     playlists={playlists}
                                     onPlay={onPlay}
-                                    onDownload={handleDownload}
+                                    onDownload={onDownload}
                                 />
                             ))}
                         </div>
@@ -370,7 +328,7 @@ const MainContent = ({
                                         onPlay={() => onPlay(song, downloads)}
                                         isLiked={likedSongs.some(s => s.id === song.id)}
                                         toggleLike={toggleLike}
-                                        onRemove={() => handleDeleteDownload(song)}
+                                        onRemove={() => onDeleteDownload(song)}
                                         playlists={playlists}
                                         addToPlaylist={addToPlaylist}
                                         isDownloaded={true}
@@ -443,7 +401,7 @@ const MainContent = ({
                                     onRemove={activeView === 'playlist' ? (s) => { /* remove logic via App */ } : null}
                                     playlists={playlists}
                                     addToPlaylist={addToPlaylist}
-                                    onDownload={handleDownload}
+                                    onDownload={onDownload}
                                     isDownloaded={downloads.some(d => d.id === song.id)}
                                 />
                             ))}
@@ -456,9 +414,9 @@ const MainContent = ({
 
         // --- HOME VIEW (UPDATED) ---
         return (
-            <div className="p-6 md:p-8 space-y-10 animate-fade-in">
+            <div className="p-4 md:p-8 space-y-6 animate-fade-in">
                 {/* Greetings */}
-                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-8 text-gradient drop-shadow-lg">{greeting}</h2>
+                <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 text-gradient drop-shadow-lg">{greeting}</h2>
 
                 {/* CASE 1: New User (No History) -> Show Trending as MAIN GRID to fill space */}
                 {!recentlyPlayed.length && (
@@ -474,6 +432,7 @@ const MainContent = ({
                                     addToPlaylist={addToPlaylist}
                                     playlists={playlists}
                                     onPlay={onPlay}
+                                    onDownload={onDownload}
                                 />
                             )) : (
                                 // Loading Skeletons
@@ -517,6 +476,7 @@ const MainContent = ({
                                         addToPlaylist={addToPlaylist}
                                         playlists={playlists}
                                         onPlay={onPlay}
+                                        onDownload={onDownload}
                                     />
                                 )) : (
                                     Array(5).fill(0).map((_, i) => (

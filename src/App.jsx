@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
 import { searchSongs, getTrendingSongs } from './api/music';
+import { saveSongToDB, getAllDownloadedSongs, deleteSongFromDB } from './utils/db';
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -42,6 +43,67 @@ function App() {
   // --- Load Data from Storage ---
   const [trendingSongs, setTrendingSongs] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // --- Downloads State ---
+  const [downloads, setDownloads] = useState([]);
+
+  // --- Downloads Logic ---
+  const handleDownload = async (song) => {
+    try {
+      const confirmed = window.confirm(`Download "${song.name}" for offline play?`);
+      if (!confirmed) return;
+
+      if (!song.url) {
+        alert("Download failed: No URL found.");
+        return;
+      }
+
+      // Toast-like notification
+      const toast = document.createElement("div");
+      toast.innerText = "Downloading...";
+      toast.style.cssText = "position:fixed;bottom:80px;right:20px;background:#a855f7;color:white;padding:12px 24px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3); font-weight:bold;";
+      document.body.appendChild(toast);
+
+      const response = await fetch(song.url);
+      const blob = await response.blob();
+
+      // 1. Save to DB (In-App Offline)
+      await saveSongToDB(song, blob);
+
+      // 2. Trigger File Download (Local File)
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${song.name}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      toast.innerText = "Downloaded successfully!";
+      setTimeout(() => toast.remove(), 3000);
+
+      // Update state
+      const updated = await getAllDownloadedSongs();
+      setDownloads(updated);
+    } catch (e) {
+      console.error("Download failed", e);
+      alert("Download failed. Please try again.");
+      const t = document.querySelector('div[style*="position:fixed;bottom:80px"]');
+      if (t) t.remove();
+    }
+  };
+
+  const handleDeleteDownload = async (song) => {
+    if (window.confirm(`Remove "${song.name}" from offline storage?`)) {
+      await deleteSongFromDB(song.id);
+      setDownloads(prev => prev.filter(s => s.id !== song.id));
+    }
+  };
+
+  // Load downloads on mount
+  useEffect(() => {
+    getAllDownloadedSongs().then(setDownloads);
+  }, []);
 
   // --- Load Data from Storage ---
   useEffect(() => {
@@ -354,6 +416,11 @@ function App() {
         deletePlaylist={deletePlaylist}
         currentSong={queue[currentIndex]}
         onNavigate={navigateTo}
+
+        // Downloads
+        downloads={downloads}
+        onDownload={handleDownload}
+        onDeleteDownload={handleDeleteDownload}
       />
 
       <Playbar
@@ -378,6 +445,12 @@ function App() {
           setIsShuffle(!isShuffle);
           if (!isShuffle && queue.length > 0) generateShuffleIndices(queue.length);
         }}
+
+        // Downloads
+        onDownload={() => {
+          if (queue[currentIndex]) handleDownload(queue[currentIndex]);
+        }}
+        isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
       />
     </div>
   );

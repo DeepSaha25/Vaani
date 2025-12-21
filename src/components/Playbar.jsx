@@ -43,7 +43,9 @@ const Playbar = ({
     loopMode,
     toggleLoop,
     isShuffle,
-    toggleShuffle
+    toggleShuffle,
+    onDownload,
+    isDownloaded
 }) => {
     const isReady = !!currentSong;
     const progressPercent = duration ? (currentTime / duration) * 100 : 0;
@@ -92,12 +94,25 @@ const Playbar = ({
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
                         <button onClick={toggleLoop} className="hidden sm:block text-gray-400 hover:text-white transition"><LoopIcon mode={loopMode} /></button>
+                        {/* Mobile Download Button (in controls row for <sm, or separate?) */}
+                        {/* Let's put it in the extra menu or just here if space allows. */}
+                        {/* For now, maybe just hidden on very small, or replacing shuffle/loop logic */}
                     </div>
 
-                    {/* 3. Right Side (Shuffle/Loop on small < sm) or Spacer */}
+                    {/* 3. Right Side (Shuffle/Loop/Download on small < sm) */}
                     <div className="flex justify-end gap-3 sm:hidden">
                         <button onClick={toggleShuffle} className="text-gray-300 active:text-white"><ShuffleIcon active={isShuffle} /></button>
                         <button onClick={toggleLoop} className="text-gray-300 active:text-white"><LoopIcon mode={loopMode} /></button>
+                        {/* Download for Mobile */}
+                        {onDownload && (
+                            <button onClick={onDownload} className={`${isDownloaded ? 'text-purple-400' : 'text-gray-300 active:text-white'}`}>
+                                {isDownloaded ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                )}
+                            </button>
+                        )}
                     </div>
                     {/* Spacer for sm+ screens where toggles are in center, to balance Grid */}
                     <div className="hidden sm:block"></div>
@@ -181,6 +196,21 @@ const Playbar = ({
                         <button onClick={toggleLoop} className="hover:scale-110 transition text-gray-400 hover:text-white">
                             <LoopIcon mode={loopMode} />
                         </button>
+
+                        {/* Desktop Download Button */}
+                        {onDownload && (
+                            <button
+                                onClick={onDownload}
+                                className={`hover:scale-110 transition ${isDownloaded ? 'text-purple-400' : 'text-gray-400 hover:text-white'}`}
+                                title={isDownloaded ? "Downloaded" : "Download"}
+                            >
+                                {isDownloaded ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     {/* Progress Bar */}
