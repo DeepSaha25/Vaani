@@ -52,6 +52,14 @@ const AddToPlaylistMenu = ({ playlists, onAdd, onClose }) => (
     </div>
 );
 
+// Helper for duration
+const formatTime = (seconds) => {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
 const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist }) => {
     const [showMenu, setShowMenu] = useState(false);
     return (
@@ -62,10 +70,16 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
         >
             <span className="w-8 text-center text-gray-400">{index + 1}</span>
             <img src={song.image || 'img/cover.jpg'} alt="" className="w-10 h-10 rounded mr-4 object-cover" />
-            <div className="flex-1">
-                <div className={`font-medium ${isCurrent ? 'text-purple-400' : 'text-white'}`}>{song.name}</div>
-                <div className="text-sm text-gray-400">{song.artist}</div>
+            <div className="flex-1 min-w-0 pr-4">
+                <div className={`font-medium truncate ${isCurrent ? 'text-purple-400' : 'text-white'}`}>{song.name}</div>
+                <div className="text-sm text-gray-400 truncate">{song.artist}</div>
             </div>
+
+            {/* Duration - Hide on very small screens if needed, usually fine */}
+            {song.duration && (
+                <span className="text-sm text-gray-400 font-mono mr-4">{formatTime(song.duration)}</span>
+            )}
+
             <div className="flex items-center gap-4 mr-4 relative">
                 <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
                 {onRemove ? (
@@ -85,7 +99,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
                     </div>
                 )}
             </div>
-            <span className="text-sm text-gray-400 hidden md:block">{song.album || 'Single'}</span>
+            <span className="text-sm text-gray-400 hidden md:block w-32 truncate text-right">{song.album || 'Single'}</span>
         </div>
     );
 };
