@@ -56,7 +56,7 @@ function App() {
     load(STORAGE_KEYS.PLAYLISTS, setPlaylists);
 
     // Load Trending Cache immediately for instant UI
-    load('vaani_trending_cache', setTrendingSongs);
+    load('vaani_trending_cache_v2', setTrendingSongs);
 
     setIsLoaded(true);
 
@@ -64,7 +64,7 @@ function App() {
     getTrendingSongs().then(res => {
       if (res && res.length > 0) {
         setTrendingSongs(res);
-        localStorage.setItem('vaani_trending_cache', JSON.stringify(res));
+        localStorage.setItem('vaani_trending_cache_v2', JSON.stringify(res));
       }
     });
   }, []);
