@@ -79,15 +79,16 @@ export const searchSongs = async (query) => {
 
 export const getTrendingSongs = async () => {
     try {
-        // Fetch "Trending" by query for now, reliable fallback
-        const response = await fetch(`${BASE_URL}/search?query=Trending Hindi&limit=20`);
+        // Fetch "Now Trending" Playlist (ID: 47599074)
+        // This provides proper trending songs with full details (no 2-step needed)
+        const response = await fetch(`${BASE_URL}/playlists?id=47599074`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const data = await response.json();
-         if (data.data && data.data.songs && data.data.songs.results) {
-            const songs = data.data.songs.results;
-            const ids = songs.map(s => s.id);
-            return await fetchSongDetails(ids);
+        
+        // Playlist endpoint structure: data.data.songs = [ { ... }, ... ]
+        if (data.success && data.data && data.data.songs) {
+            return data.data.songs.map(transformSong);
         }
         return [];
     } catch (error) {
