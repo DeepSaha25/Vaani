@@ -55,10 +55,18 @@ function App() {
     load(STORAGE_KEYS.RECENT, setRecentlyPlayed);
     load(STORAGE_KEYS.PLAYLISTS, setPlaylists);
 
+    // Load Trending Cache immediately for instant UI
+    load('vaani_trending_cache', setTrendingSongs);
+
     setIsLoaded(true);
 
-    // Fetch Trending
-    getTrendingSongs().then(res => setTrendingSongs(res));
+    // Fetch Fresh Trending Data (Stale-while-revalidate)
+    getTrendingSongs().then(res => {
+      if (res && res.length > 0) {
+        setTrendingSongs(res);
+        localStorage.setItem('vaani_trending_cache', JSON.stringify(res));
+      }
+    });
   }, []);
 
   // --- Save Data to Storage ---
