@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { saveSongToDB, getAllDownloadedSongs, deleteSongFromDB } from '../utils/db';
 
 // Icons
 const PlayIcon = () => (
@@ -104,7 +105,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
     );
 };
 
-const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists }) => {
+const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists, onDownload }) => {
     const [showMenu, setShowMenu] = useState(false);
     return (
         <div
@@ -114,12 +115,28 @@ const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists 
         >
             <div className="mb-3 relative w-full aspect-square">
                 <img src={song.image} className="w-full h-full object-cover rounded shadow-lg" alt="" />
-                <div className="absolute right-2 bottom-2 bg-purple-500 rounded-full p-2 opacity-0 group-hover:opacity-100 transition shadow-xl translate-y-2 group-hover:translate-y-0 text-black">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                {/* Play Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <div className="bg-[#a855f7] rounded-full p-3 shadow-xl hover:scale-110 transition-transform">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="black"><path d="M8 5v14l11-7z" /></svg>
+                    </div>
                 </div>
+                {/* Download Overlay Button (Top Right) */}
+                {onDownload && (
+                    <div
+                        onClick={(e) => { e.stopPropagation(); onDownload(song); }}
+                        className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-black/80 hover:scale-105"
+                        title="Download"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                )}
             </div>
-            <h3 className="font-bold truncate mb-1 text-sm md:text-base">{song.name}</h3>
-            <p className="text-xs md:text-sm text-gray-400 truncate">{song.artist}</p>
+            <div className="flex flex-col gap-1">
+                <span className="text-white font-semibold truncate" title={song.name}>{song.name}</span>
+                <span className="text-[#b3b3b3] text-sm truncate">{song.artist}</span>
+            </div>
+            {/* Card interactions */}
             <div className="mt-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition items-center relative z-10 w-full">
                 <HeartIcon filled={isLiked} onClick={() => toggleLike(song)} />
                 <div className="relative" onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}>
@@ -160,6 +177,69 @@ const MainContent = ({
 }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [searchTerm, setSearchTerm] = useState("");
+    const [downloads, setDownloads] = useState([]);
+
+    // --- Effects ---
+    // Fetch downloads when view changes
+    useEffect(() => {
+        if (activeView === 'downloads') {
+            getAllDownloadedSongs().then(setDownloads);
+        }
+    }, [activeView]);
+
+    const handleDownload = async (song) => {
+        try {
+            const confirmed = window.confirm(`Download "${song.name}" for offline play?`);
+            if (!confirmed) return;
+
+            if (!song.url) {
+                alert("Download failed: No URL found.");
+                return;
+            }
+
+            // Toast-like notification
+            const toast = document.createElement("div");
+            toast.innerText = "Downloading...";
+            toast.style.cssText = "position:fixed;bottom:80px;right:20px;background:#a855f7;color:white;padding:12px 24px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3); font-weight:bold;";
+            document.body.appendChild(toast);
+
+            const response = await fetch(song.url);
+            const blob = await response.blob();
+
+            // 1. Save to DB (In-App Offline)
+            await saveSongToDB(song, blob);
+
+            // 2. Trigger File Download (Local File)
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${song.name}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            toast.innerText = "Downloaded successfully!";
+            setTimeout(() => toast.remove(), 3000);
+
+            // Update state if viewing downloads
+            if (activeView === 'downloads') {
+                const updated = await getAllDownloadedSongs();
+                setDownloads(updated);
+            }
+        } catch (e) {
+            console.error("Download failed", e);
+            alert("Download failed. Please try again.");
+            const t = document.querySelector('div[style*="position:fixed;bottom:80px"]');
+            if (t) t.remove();
+        }
+    };
+
+    const handleDeleteDownload = async (song) => {
+        if (window.confirm(`Remove "${song.name}" from offline storage?`)) {
+            await deleteSongFromDB(song.id);
+            setDownloads(prev => prev.filter(s => s.id !== song.id));
+        }
+    };
 
     useEffect(() => {
         const h = new Date().getHours();
@@ -244,10 +324,67 @@ const MainContent = ({
                                     addToPlaylist={addToPlaylist}
                                     playlists={playlists}
                                     onPlay={onPlay}
+                                    onDownload={handleDownload}
                                 />
                             ))}
                         </div>
                     )}
+                </div>
+            );
+        }
+
+
+
+        // --- DOWNLOADS VIEW ---
+        if (activeView === 'downloads') {
+            return (
+                <div className="p-6 md:p-8 animate-fade-in pb-32">
+                    <div className="flex items-end gap-6 mb-8">
+                        <div className="w-40 h-40 md:w-52 md:h-52 bg-gradient-to-br from-blue-700 to-cyan-600 shadow-2xl rounded-lg flex items-center justify-center">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <span className="text-sm font-bold uppercase tracking-wider text-white/80">Offline Storage</span>
+                            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tight drop-shadow-xl">Downloads</h1>
+                            <div className="flex items-center gap-2 text-sm text-gray-300 font-medium">
+                                <span>{downloads.length} songs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-black/20 rounded-xl overflow-hidden backdrop-blur-sm border border-white/5">
+                        <div className="flex items-center p-4 border-b border-white/5 text-gray-400 text-sm font-semibold uppercase tracking-wider sticky top-0 bg-[#121212] z-10 opacity-90">
+                            <div className="w-8 text-center mr-4">#</div>
+                            <div className="flex-1">Title</div>
+                            <div className="w-8 mr-8"></div>
+                            <div className="hidden md:block w-32 text-right">Album</div>
+                        </div>
+                        <div className="flex flex-col">
+                            {downloads.length > 0 ? (
+                                downloads.map((song, i) => (
+                                    <SongRow
+                                        key={song.id}
+                                        song={song}
+                                        index={i}
+                                        isCurrent={currentSong?.id === song.id}
+                                        onPlay={() => onPlay(song, downloads)}
+                                        isLiked={likedSongs.some(s => s.id === song.id)}
+                                        toggleLike={toggleLike}
+                                        onRemove={() => handleDeleteDownload(song)}
+                                        playlists={playlists}
+                                        addToPlaylist={addToPlaylist}
+                                        isDownloaded={true}
+                                    />
+                                ))
+                            ) : (
+                                <div className="p-10 text-center text-gray-500 flex flex-col items-center gap-4">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-3xl">⬇️</div>
+                                    <p className="text-lg">No downloaded songs yet.</p>
+                                    <button onClick={() => onNavigate('home')} className="px-6 py-2 bg-white text-black rounded-full font-bold text-sm hover:scale-105 transition">Discover Music</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -306,6 +443,8 @@ const MainContent = ({
                                     onRemove={activeView === 'playlist' ? (s) => { /* remove logic via App */ } : null}
                                     playlists={playlists}
                                     addToPlaylist={addToPlaylist}
+                                    onDownload={handleDownload}
+                                    isDownloaded={downloads.some(d => d.id === song.id)}
                                 />
                             ))}
                             {songs.length === 0 && <p className="text-gray-500 italic mt-12 text-center text-lg">It's a bit empty here...</p>}

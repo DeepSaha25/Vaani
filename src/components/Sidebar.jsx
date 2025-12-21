@@ -120,6 +120,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                             </div>
                         </div>
 
+                        {/* Downloads Item */}
+                        <div
+                            className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'downloads' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
+                            onClick={() => onNavigate('downloads')}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeView === 'downloads' ? '#fff' : '#b3b3b3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-white">Downloads</span>
+                                <span className="text-xs">Offline</span>
+                            </div>
+                        </div>
+
                         {/* Reference for new playlist input */}
                         {isCreating && (
                             <div className="flex items-center gap-3 p-2 rounded-md bg-white/5 mx-0 mb-1">
