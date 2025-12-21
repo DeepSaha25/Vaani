@@ -62,24 +62,25 @@ const Playbar = ({
             {/* --- Mobile Layout (< md) --- */}
             <div className="flex md:hidden flex-col h-full relative">
                 {/* Main Row: Info + Controls */}
-                <div className="flex-1 flex items-center justify-between px-3">
-                    {/* Song Info */}
-                    <div className="flex items-center gap-3 overflow-hidden flex-1 mr-2">
+                <div className="flex-1 flex items-center justify-center px-3 relative">
+                    {/* Song Info (Absolute Left) */}
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[35%] max-w-[140px] z-20 pointer-events-none">
                         {currentSong && (
-                            <div className="overflow-hidden">
+                            <div className="overflow-hidden pointer-events-auto">
                                 <div className="text-sm font-bold text-white truncate">{currentSong.name}</div>
                                 <div className="text-xs text-gray-400 truncate">{currentSong.artist}</div>
                             </div>
                         )}
                     </div>
 
-                    {/* Controls */}
-                    <div className="flex items-center gap-4">
-                        <button onClick={toggleShuffle}><ShuffleIcon active={isShuffle} /></button>
+                    {/* Controls (Absolute Center) */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4 z-10">
+                        {/* Hidden on very small screens? or just let them squeeze */}
+                        <button onClick={toggleShuffle} className="hidden sm:block"><ShuffleIcon active={isShuffle} /></button>
                         <button onClick={onPrev} className="text-gray-400">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
-                        <button onClick={onPlayPause} className="bg-white rounded-full p-2 text-black">
+                        <button onClick={onPlayPause} className="bg-white rounded-full p-2 text-black hover:scale-105 transition">
                             {isPlaying ? (
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
                             ) : (
@@ -89,6 +90,12 @@ const Playbar = ({
                         <button onClick={onNext} className="text-gray-400">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
+                        <button onClick={toggleLoop} className="hidden sm:block"><LoopIcon mode={loopMode} /></button>
+                    </div>
+
+                    {/* Right Side Toggles (Only visible when main controls hide Shuffle/Loop on small screens < 640px) */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex sm:hidden gap-2 z-20">
+                        <button onClick={toggleShuffle}><ShuffleIcon active={isShuffle} /></button>
                         <button onClick={toggleLoop}><LoopIcon mode={loopMode} /></button>
                     </div>
                 </div>
