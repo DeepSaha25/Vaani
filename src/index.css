@@ -9,7 +9,7 @@
   
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #121212;
+  background-color: #000; /* Fallback */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,29 +21,54 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* Animated Gradient Background */
+  background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #121212; 
+    background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-    background: #555; 
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2); 
+    border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #888; 
+    background: rgba(255, 255, 255, 0.4); 
 }
 
 /* Glassmorphism Utilities */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-header {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Text Gradients */
+.text-gradient {
+    background: linear-gradient(to right, #c084fc, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Utility to hide scrollbar but allow scroll */

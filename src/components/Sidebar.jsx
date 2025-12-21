@@ -56,21 +56,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
             ></div>
 
             {/* Sidebar Container */}
+            {/* Sidebar Container */}
             <div className={`
-                fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] bg-black p-2 flex flex-col gap-2
+                fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] glass-panel p-2 flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 {/* Nav Section */}
-                <div className="bg-[#121212] rounded-lg p-5 flex flex-col gap-5">
-                    <div className="flex items-center gap-2 px-1 cursor-pointer" onClick={() => onNavigate('home')}>
-                        <img src="img/vaanilogo.png" alt="Logo" className="w-8 h-8" />
-                        <span className="font-bold text-white text-xl">Vaani</span>
+                <div className="bg-transparent p-5 flex flex-col gap-5">
+                    <div className="flex items-center gap-2 px-1 cursor-pointer group" onClick={() => onNavigate('home')}>
+                        <img src="img/vaanilogo.png" alt="Logo" className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                        <span className="font-bold text-white text-xl tracking-tight">Vaani</span>
                     </div>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
                         <div
-                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition ${activeView === 'home' ? 'text-white' : 'text-[#b3b3b3] hover:text-white'}`}
+                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition p-2 rounded-md ${activeView === 'home' ? 'bg-white/10 text-white' : 'text-[#b3b3b3] hover:text-white hover:bg-white/5'}`}
                             onClick={() => onNavigate('home')}
                         >
                             <HomeIcon active={activeView === 'home'} />
@@ -78,7 +79,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                         </div>
 
                         <div
-                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition ${activeView === 'search' ? 'text-white' : 'text-[#b3b3b3] hover:text-white'}`}
+                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition p-2 rounded-md ${activeView === 'search' ? 'bg-white/10 text-white' : 'text-[#b3b3b3] hover:text-white hover:bg-white/5'}`}
                             onClick={() => onNavigate('search')}
                         >
                             <SearchIcon active={activeView === 'search'} />
@@ -88,14 +89,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                 </div>
 
                 {/* Library Section */}
-                <div className="bg-[#121212] rounded-lg flex-1 overflow-hidden flex flex-col">
-                    <div className="p-4 px-6 shadow-md flex justify-between items-center text-[#b3b3b3]">
+                <div className="bg-black/20 rounded-lg flex-1 overflow-hidden flex flex-col mx-2 mb-2">
+                    <div className="p-4 px-6 shadow-sm flex justify-between items-center text-[#b3b3b3]">
                         <div className="flex items-center gap-2 hover:text-white transition cursor-pointer">
                             <LibraryIcon active={false} />
                             <span className="font-bold text-sm">Your Library</span>
                         </div>
                         <div
-                            className="hover:bg-[#2a2a2a] p-1 rounded-full text-white cursor-pointer"
+                            className="hover:bg-white/10 p-1 rounded-full text-white cursor-pointer transition"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsCreating(true);
@@ -109,7 +110,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                     <div className="flex-1 overflow-y-auto px-2 pb-20 scrollbar-hide">
                         {/* Liked Songs Item */}
                         <div
-                            className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition ${activeView === 'liked' ? 'bg-[#282828] text-white' : 'hover:bg-[#1a1a1a] text-[#b3b3b3]'}`}
+                            className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'liked' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
                             onClick={() => onNavigate('liked')}
                         >
                             <HeartIcon />
@@ -121,8 +122,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
 
                         {/* Reference for new playlist input */}
                         {isCreating && (
-                            <div className="flex items-center gap-3 p-2 rounded-md bg-[#282828] mx-0">
-                                <div className="w-12 h-12 bg-[#282828] rounded flex items-center justify-center text-xl">🎵</div>
+                            <div className="flex items-center gap-3 p-2 rounded-md bg-white/5 mx-0 mb-1">
+                                <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xl">🎵</div>
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -146,10 +147,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                         {playlists.map(pl => (
                             <div
                                 key={pl.id}
-                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition ${activeView === 'playlist' /* && viewData === pl.id? */ ? 'bg-[#282828] text-white' : 'hover:bg-[#1a1a1a] text-[#b3b3b3]'}`}
+                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'playlist' && viewData === pl.id ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
                                 onClick={() => onNavigate('playlist', pl.id)}
                             >
-                                <div className="w-12 h-12 bg-[#282828] rounded flex items-center justify-center text-xl">🎵</div>
+                                <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xl shadow-sm">🎵</div>
                                 <div className="flex flex-col overflow-hidden">
                                     <span className="text-sm font-semibold text-white truncate">{pl.name}</span>
                                     <span className="text-xs truncate">Playlist • {pl.songs.length} songs</span>

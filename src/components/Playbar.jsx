@@ -57,104 +57,104 @@ const Playbar = ({
     };
 
     return (
-        <div className={`fixed bottom-0 left-0 right-0 h-[80px] bg-black/90 backdrop-blur-xl border-t border-white/10 z-50 transition-all ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+    return (
+        <div className={`fixed bottom-0 left-0 right-0 h-[84px] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
 
             {/* --- Mobile Layout (< md) --- */}
             <div className="flex md:hidden flex-col h-full relative">
                 {/* Main Row: Info + Controls */}
-                <div className="flex-1 flex items-center justify-center px-3 relative">
+                <div className="flex-1 flex items-center justify-center px-4 relative">
                     {/* Song Info (Absolute Left) */}
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[35%] max-w-[140px] z-20 pointer-events-none">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-[35%] max-w-[140px] z-20 pointer-events-none">
                         {currentSong && (
                             <div className="overflow-hidden pointer-events-auto">
-                                <div className="text-sm font-bold text-white truncate">{currentSong.name}</div>
-                                <div className="text-xs text-gray-400 truncate">{currentSong.artist}</div>
+                                <div className="text-sm font-bold text-white truncate drop-shadow-md">{currentSong.name}</div>
+                                <div className="text-xs text-gray-300 truncate">{currentSong.artist}</div>
                             </div>
                         )}
                     </div>
 
                     {/* Controls (Absolute Center) */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4 z-10">
-                        {/* Hidden on very small screens? or just let them squeeze */}
-                        <button onClick={toggleShuffle} className="hidden sm:block"><ShuffleIcon active={isShuffle} /></button>
-                        <button onClick={onPrev} className="text-gray-400">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-5 z-10">
+                        <button onClick={toggleShuffle} className="hidden sm:block text-gray-400 hover:text-white transition"><ShuffleIcon active={isShuffle} /></button>
+                        <button onClick={onPrev} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
-                        <button onClick={onPlayPause} className="bg-white rounded-full p-2 text-black hover:scale-105 transition">
+                        <button onClick={onPlayPause} className="bg-white rounded-full p-2.5 text-black hover:scale-110 transition shadow-lg hover:shadow-white/20 active:scale-95">
                             {isPlaying ? (
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
                             ) : (
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                             )}
                         </button>
-                        <button onClick={onNext} className="text-gray-400">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
+                        <button onClick={onNext} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
-                        <button onClick={toggleLoop} className="hidden sm:block"><LoopIcon mode={loopMode} /></button>
+                        <button onClick={toggleLoop} className="hidden sm:block text-gray-400 hover:text-white transition"><LoopIcon mode={loopMode} /></button>
                     </div>
 
-                    {/* Right Side Toggles (Only visible when main controls hide Shuffle/Loop on small screens < 640px) */}
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex sm:hidden gap-2 z-20">
-                        <button onClick={toggleShuffle}><ShuffleIcon active={isShuffle} /></button>
-                        <button onClick={toggleLoop}><LoopIcon mode={loopMode} /></button>
+                    {/* Right Side Toggles */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex sm:hidden gap-3 z-20">
+                        <button onClick={toggleShuffle} className="text-gray-300 active:text-white"><ShuffleIcon active={isShuffle} /></button>
+                        <button onClick={toggleLoop} className="text-gray-300 active:text-white"><LoopIcon mode={loopMode} /></button>
                     </div>
                 </div>
 
                 {/* Progress Bar (Absolute Bottom) */}
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] w-full bg-gray-800">
+                <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] w-full bg-white/10 group hover:h-[6px] transition-all duration-300">
                     <div
-                        className="h-full bg-white relative group"
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 relative rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"
                         style={{ width: `${progressPercent}%` }}
-                    >
-                        {/* Thumb (only visible on seek/interaction if needed, essentially invisible touch target) */}
-                    </div>
-                    {/* Interaction Area for Seek */}
+                    ></div>
                     <input
                         type="range"
                         min="0"
                         max={duration || 100}
                         value={currentTime || 0}
                         onChange={(e) => onSeek(e.target.value)}
-                        className="absolute bottom-0 left-0 w-full h-[10px] opacity-0 cursor-pointer z-10 translate-y-1/2"
+                        className="absolute bottom-0 left-0 w-full h-[20px] opacity-0 cursor-pointer z-30 translate-y-1/2"
                     />
                 </div>
             </div>
 
 
             {/* --- Desktop Layout (>= md) --- */}
-            <div className="hidden md:flex items-center justify-between h-full px-4">
+            <div className="hidden md:flex items-center justify-between h-full px-8">
                 {/* 1. Song Info (Left) */}
-                <div className="flex items-center gap-3 w-1/3 min-w-[120px]">
+                <div className="flex items-center gap-4 w-1/3 min-w-[120px]">
                     {currentSong && (
                         <>
-                            <img
-                                src={currentSong.image || 'img/cover.jpg'}
-                                alt=""
-                                className="w-12 h-12 rounded"
-                            />
+                            <div className="relative group/cover">
+                                <img
+                                    src={currentSong.image || 'img/cover.jpg'}
+                                    alt=""
+                                    className="w-14 h-14 rounded-md shadow-lg object-cover group-hover/cover:shadow-purple-500/20 transition-all duration-500"
+                                />
+                                <div className="absolute inset-0 bg-black/20 rounded-md opacity-0 group-hover/cover:opacity-100 transition-opacity"></div>
+                            </div>
                             <div className="overflow-hidden">
-                                <div className="text-sm font-bold text-white truncate max-w-[150px]">{currentSong.name}</div>
-                                <div className="text-xs text-gray-400 truncate max-w-[150px]">{currentSong.artist}</div>
+                                <div className="text-sm font-bold text-white truncate max-w-[180px] hover:underline cursor-pointer">{currentSong.name}</div>
+                                <div className="text-xs text-gray-400 truncate max-w-[180px] hover:text-gray-300 cursor-pointer">{currentSong.artist}</div>
                             </div>
                         </>
                     )}
                 </div>
 
                 {/* 2. Controls (Center) */}
-                <div className="flex flex-col items-center flex-1 max-w-[500px]">
+                <div className="flex flex-col items-center flex-1 max-w-[600px]">
                     {/* Buttons */}
-                    <div className="flex items-center gap-6 mb-1">
-                        <button onClick={toggleShuffle} className="hover:scale-110 transition">
+                    <div className="flex items-center gap-6 mb-2">
+                        <button onClick={toggleShuffle} className="hover:scale-110 transition text-gray-400 hover:text-white">
                             <ShuffleIcon active={isShuffle} />
                         </button>
 
-                        <button onClick={onPrev} className="hover:text-white text-gray-400">
+                        <button onClick={onPrev} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
 
                         <button
                             onClick={onPlayPause}
-                            className="bg-white rounded-full p-2 hover:scale-105 transition active:scale-95"
+                            className="bg-white rounded-full p-2.5 hover:scale-110 transition active:scale-95 shadow-lg shadow-white/10 hover:shadow-white/30"
                         >
                             {isPlaying ? (
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="black"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
@@ -163,43 +163,57 @@ const Playbar = ({
                             )}
                         </button>
 
-                        <button onClick={onNext} className="hover:text-white text-gray-400">
+                        <button onClick={onNext} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
 
-                        <button onClick={toggleLoop} className="hover:scale-110 transition">
+                        <button onClick={toggleLoop} className="hover:scale-110 transition text-gray-400 hover:text-white">
                             <LoopIcon mode={loopMode} />
                         </button>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full flex items-center gap-2 text-xs text-gray-400">
-                        <span className="min-w-[30px] text-right">{formatTime(currentTime)}</span>
-                        <input
-                            type="range"
-                            min="0"
-                            max={duration || 100}
-                            value={currentTime || 0}
-                            onChange={(e) => onSeek(e.target.value)}
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white hover:accent-purple-500"
-                        />
-                        <span className="min-w-[30px]">{formatTime(duration)}</span>
+                    <div className="w-full flex items-center gap-3 text-xs text-gray-400 group/progress">
+                        <span className="min-w-[35px] text-right font-mono">{formatTime(currentTime)}</span>
+                        <div className="relative flex-1 h-1 bg-white/10 rounded-full cursor-pointer group-hover/progress:h-1.5 transition-all">
+                            <div
+                                className="absolute top-0 left-0 h-full bg-white rounded-full group-hover/progress:bg-purple-400 transition-colors"
+                                style={{ width: `${progressPercent}%` }}
+                            >
+                                <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow opacity-0 group-hover/progress:opacity-100 transition-opacity"></div>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max={duration || 100}
+                                value={currentTime || 0}
+                                onChange={(e) => onSeek(e.target.value)}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                        </div>
+                        <span className="min-w-[35px] font-mono">{formatTime(duration)}</span>
                     </div>
                 </div>
 
                 {/* 3. Volume / Extra (Right) */}
                 <div className="w-1/3 flex justify-end items-center gap-2">
-                    <div className="flex items-center gap-2 w-32">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                        <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={volume}
-                            onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white"
-                        />
+                    <div className="flex items-center gap-3 w-36 group/volume">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-400"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <div className="relative flex-1 h-1 bg-white/10 rounded-full cursor-pointer hover:h-1.5 transition-all">
+                            <div
+                                className="absolute top-0 left-0 h-full bg-white rounded-full"
+                                style={{ width: `${volume * 100}%` }}
+                            ></div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
