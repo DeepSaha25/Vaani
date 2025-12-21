@@ -1,6 +1,6 @@
 {
-    "name": "TuneMate",
-    "short_name": "TuneMate",
+    "name": "Vaani Music Player",
+    "short_name": "Vaani",
     "start_url": "./",
     "display": "standalone",
     "background_color": "#111827",
@@ -8,12 +8,12 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/img/icon-192.png",
+            "src": "/img/vaanilogo.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/img/icon-512.png",
+            "src": "/img/vaanilogo.png",
             "type": "image/png",
             "sizes": "512x512"
         }

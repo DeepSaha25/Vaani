@@ -6,9 +6,9 @@ import { searchSongs, getTrendingSongs } from './api/music';
 
 // Storage Keys
 const STORAGE_KEYS = {
-  LIKED: 'tunemate_liked_songs',
-  RECENT: 'tunemate_recently_played',
-  PLAYLISTS: 'tunemate_playlists'
+  LIKED: 'vaani_liked_songs',
+  RECENT: 'vaani_recently_played',
+  PLAYLISTS: 'vaani_playlists'
 };
 
 function App() {
