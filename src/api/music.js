@@ -1,34 +1,74 @@
-// Using saavn.sumit.co API (Verified working)
-const BASE_URL = "https://saavn.sumit.co/api";
+// New API Endpoint (Tested & Verified)
+const BASE_URL = "https://jiosavan-api-with-playlist.vercel.app/api";
 
 const transformSong = (item) => {
-    // Helper to extract highest quality image
-    const image = item.image && item.image.length > 0 ? item.image[item.image.length - 1].url : null;
-    
+    // Helper to extract highest quality image (500x500 preferred)
+    // API returns array: [{quality: "12kbps", url: "..."}, ...]
+    // We want the last one usually, or find by quality.
+    // Images: [{quality: "50x50"}, {quality: "150x150"}, {quality: "500x500"}]
+    let image = null;
+    if (item.image && Array.isArray(item.image) && item.image.length > 0) {
+        image = item.image[item.image.length - 1].url;
+    } else if (typeof item.image === 'string') {
+        image = item.image;
+    }
+
     // Helper to extract highest quality audio (320kbps preferred)
-    const downloadObj = item.downloadUrl ? item.downloadUrl.find(find => find.quality === "320kbps") : null;
-    const url = downloadObj ? downloadObj.url : (item.downloadUrl && item.downloadUrl.length > 0 ? item.downloadUrl[item.downloadUrl.length - 1].url : null);
+    let url = null;
+    if (item.downloadUrl && Array.isArray(item.downloadUrl) && item.downloadUrl.length > 0) {
+        const bestQuality = item.downloadUrl.find(find => find.quality === "320kbps");
+        url = bestQuality ? bestQuality.url : item.downloadUrl[item.downloadUrl.length - 1].url;
+    }
+
+    // Artists: { primary: [{name: "A"}, {name: "B"}], ... }
+    let artistNames = "";
+    if (item.artists && item.artists.primary) {
+        artistNames = item.artists.primary.map(a => a.name).join(", ");
+    } else if (item.primaryArtists) {
+        artistNames = item.primaryArtists; // Sometimes string or different format
+    }
 
     return {
         id: item.id,
-        name: item.name,
-        artist: item.artists && item.artists.primary ? item.artists.primary.map(a => a.name).join(", ") : (item.primaryArtists || ""),
+        name: item.name || item.title,
+        artist: artistNames,
         image: image,
         url: url,
         album: item.album ? item.album.name : "Single",
+        duration: item.duration,
         isApiSong: true
     };
 };
 
+const fetchSongDetails = async (ids) => {
+    try {
+        if (!ids || ids.length === 0) return [];
+        const response = await fetch(`${BASE_URL}/songs?ids=${ids.join(',')}`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        if (data.success && data.data) {
+            return data.data.map(transformSong);
+        }
+        return [];
+    } catch (e) {
+        console.error("Error fetching details:", e);
+        return [];
+    }
+};
+
 export const searchSongs = async (query) => {
   try {
-    const response = await fetch(`${BASE_URL}/search/songs?query=${encodeURIComponent(query)}`);
+    const response = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
     if (!response.ok) throw new Error('Network response was not ok');
     
     const data = await response.json();
     
-    if (data.data && data.data.results) {
-        return data.data.results.map(transformSong);
+    // Structure: data.data.songs.results = [{id, ...}, ...]
+    if (data.data && data.data.songs && data.data.songs.results && data.data.songs.results.length > 0) {
+        const songs = data.data.songs.results;
+        const ids = songs.map(s => s.id);
+        // Step 2: Fetch details to get downloadUrl
+        return await fetchSongDetails(ids);
     }
     return [];
   } catch (error) {
@@ -39,14 +79,15 @@ export const searchSongs = async (query) => {
 
 export const getTrendingSongs = async () => {
     try {
-        // Fetching "Top 50" as a proxy for trending/popular songs
-        // Alternatively, we could use a specific playlist ID if known, but search is safer generic approach
-        const response = await fetch(`${BASE_URL}/search/songs?query=Trending Hindi&limit=20`);
+        // Fetch "Trending" by query for now, reliable fallback
+        const response = await fetch(`${BASE_URL}/search?query=Trending Hindi&limit=20`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const data = await response.json();
-         if (data.data && data.data.results) {
-            return data.data.results.map(transformSong);
+         if (data.data && data.data.songs && data.data.songs.results) {
+            const songs = data.data.songs.results;
+            const ids = songs.map(s => s.id);
+            return await fetchSongDetails(ids);
         }
         return [];
     } catch (error) {
