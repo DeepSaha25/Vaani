@@ -393,6 +393,7 @@ function App() {
         playlists={playlists}
         onCreatePlaylist={createPlaylist}
         onNavigate={navigateTo}
+        isPlaybarVisible={queue.length > 0}
       />
 
       <MainContent

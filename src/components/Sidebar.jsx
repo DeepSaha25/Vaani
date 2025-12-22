@@ -37,7 +37,7 @@ const HeartIcon = () => (
     </div>
 );
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreatePlaylist, onNavigate }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreatePlaylist, onNavigate, isPlaybarVisible }) => {
     const [isCreating, setIsCreating] = useState(false);
     const inputRef = useRef(null);
 
@@ -61,6 +61,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                 fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] glass-panel p-2 flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                ${isPlaybarVisible ? 'pb-[90px] md:pb-2' : ''}
             `}>
                 {/* Nav Section */}
                 <div className="bg-transparent p-5 flex flex-col gap-5">
@@ -176,10 +177,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                     </div>
                 </div>
 
-                <div className="px-2 pb-3 md:pb-0 text-[10px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide">
+                <div className="px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide">
                     &copy; Vaani || By Deep Saha
                 </div>
-            </div>
+            </div >
         </>
     );
 };
