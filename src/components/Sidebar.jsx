@@ -175,6 +175,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                         ))}
                     </div>
                 </div>
+
+                <div className="px-2 pb-3 md:pb-0 text-[10px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide">
+                    &copy; Vaani || By Deep Saha
+                </div>
             </div>
         </>
     );
