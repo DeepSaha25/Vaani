@@ -58,7 +58,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
             {/* Sidebar Container */}
             {/* Sidebar Container */}
             <div className={`
-                fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] glass-panel p-2 pt-[calc(0.5rem+env(safe-area-inset-top))] flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
+                fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] md:h-full glass-panel p-2 pt-[calc(0.5rem+env(safe-area-inset-top))] flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 ${isPlaybarVisible ? 'pb-[calc(90px+env(safe-area-inset-bottom))] md:pb-2' : ''}
@@ -90,7 +90,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreateP
                 </div>
 
                 {/* Library Section */}
-                <div className="bg-black/20 rounded-lg flex-1 overflow-hidden flex flex-col mx-2 mb-2">
+                <div className="bg-black/20 rounded-lg flex-1 overflow-hidden flex flex-col mx-2 mb-2 min-h-0">
                     <div className="p-4 px-6 shadow-sm flex justify-between items-center text-[#b3b3b3]">
                         <div className="flex items-center gap-2 hover:text-white transition cursor-pointer">
                             <LibraryIcon active={false} />
