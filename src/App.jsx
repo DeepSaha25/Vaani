@@ -174,13 +174,13 @@ function App() {
 
 
   // 2. Play/Pause Toggle
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (audioRef.current) {
       if (isPlaying) audioRef.current.pause();
       else audioRef.current.play();
-      setIsPlaying(!isPlaying);
+      setIsPlaying(p => !p);
     }
-  };
+  }, [isPlaying]);
 
   // 3. Audio Element Management
   useEffect(() => {
@@ -200,7 +200,28 @@ function App() {
         if (promise) promise.catch(e => console.error("Play error", e));
       }
     }
-  }, [currentIndex, queue, isPlaying]); // Depend on isPlaying to trigger play if state says so
+  }, [currentIndex, queue, isPlaying]);
+
+  // Media Session API (Background Playback & Notifications)
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      const currentSong = queue[currentIndex];
+      if (currentSong) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentSong.name,
+          artist: currentSong.artist || "Unknown",
+          album: currentSong.album || "Vaani",
+          artwork: [{ src: currentSong.image || '', sizes: '500x500', type: 'image/jpeg' }]
+        });
+      }
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+      navigator.mediaSession.setActionHandler('play', togglePlay);
+      navigator.mediaSession.setActionHandler('pause', togglePlay);
+      navigator.mediaSession.setActionHandler('previoustrack', handlePrev);
+      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
+    }
+  }, [currentIndex, queue, isPlaying, togglePlay, handlePrev, handleNext]);
 
 
   // 4. Handle Next / Prev / Ended
@@ -494,6 +515,7 @@ function App() {
         }}
         isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
       />
+
     </div>
   );
 }
