@@ -59,7 +59,7 @@ const Playbar = ({
     };
 
     return (
-        <div className={`fixed bottom-0 left-0 right-0 h-[84px] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
+        <div className={`fixed bottom-0 left-0 right-0 h-[calc(84px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
 
             {/* --- Mobile Layout (< md) --- */}
             {/* --- Mobile Layout (< md) --- */}
@@ -119,15 +119,15 @@ const Playbar = ({
                 </div>
 
                 {/* Mobile Duration Indicators */}
-                <div className="absolute bottom-[6px] left-2 text-[10px] text-gray-400 font-mono pointer-events-none">
+                <div className="absolute bottom-[calc(6px+env(safe-area-inset-bottom))] left-2 text-[10px] text-gray-400 font-mono pointer-events-none">
                     {formatTime(currentTime)}
                 </div>
-                <div className="absolute bottom-[6px] right-2 text-[10px] text-gray-400 font-mono pointer-events-none">
+                <div className="absolute bottom-[calc(6px+env(safe-area-inset-bottom))] right-2 text-[10px] text-gray-400 font-mono pointer-events-none">
                     {formatTime(duration)}
                 </div>
 
                 {/* Progress Bar (Absolute Bottom) */}
-                <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] w-full bg-white/10 group hover:h-[6px] transition-all duration-300">
+                <div className="absolute bottom-[calc(-1px+env(safe-area-inset-bottom))] left-0 right-0 h-[3px] w-full bg-white/10 group hover:h-[6px] transition-all duration-300">
                     <div
                         className="h-full bg-gradient-to-r from-purple-500 to-pink-500 relative rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"
                         style={{ width: `${progressPercent}%` }}

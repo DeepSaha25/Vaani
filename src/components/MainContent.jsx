@@ -223,7 +223,7 @@ const MainContent = ({
 
 
     const renderHeader = () => (
-        <div className="header sticky top-0 z-20 glass-header px-6 py-4 flex justify-between items-center h-[72px] gap-6 transition-all duration-300">
+        <div className="header sticky top-0 z-20 glass-header px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center h-[calc(72px+env(safe-area-inset-top))] gap-6 transition-all duration-300">
             {/* Mobile Menu Button */}
             <div
                 className="md:hidden cursor-pointer p-2 hover:bg-white/10 rounded-full shrink-0 transition"
@@ -531,7 +531,7 @@ const MainContent = ({
     return (
         <div className="right flex flex-col h-full bg-transparent text-white overflow-hidden flex-1 relative">
             {renderHeader()}
-            <div className="flex-1 overflow-y-auto main-content-scroll pb-24 scroll-smooth">
+            <div className="flex-1 overflow-y-auto main-content-scroll pb-[calc(6rem+env(safe-area-inset-bottom))] scroll-smooth">
                 {renderContent()}
             </div>
         </div>
