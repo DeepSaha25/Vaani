@@ -259,7 +259,14 @@ const MainContent = ({
                 />
             </div>
 
-            <div className="w-8 md:w-0"></div>
+            {/* Top Right Back Button */}
+            <div
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 cursor-pointer hover:bg-black/60 transition backdrop-blur-sm shrink-0"
+                onClick={() => window.history.back()}
+                title="Go Back"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M9 14L4 9l5-5" transform="rotate(0) translate(0, 0)" /><path d="M4 9h10c4.418 0 8 3.582 8 8v1" /></svg>
+            </div>
         </div>
     );
 

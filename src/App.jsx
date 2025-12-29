@@ -211,7 +211,7 @@ function App() {
           title: currentSong.name,
           artist: currentSong.artist || "Unknown",
           album: currentSong.album || "Vaani",
-          artwork: [{ src: currentSong.image || '', sizes: '500x500', type: 'image/jpeg' }]
+          artwork: [{ src: currentSong.image || 'img/vaanilogo.png', sizes: '512x512', type: 'image/jpeg' }]
         });
       }
       navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
