@@ -37,7 +37,7 @@ const HeartIcon = () => (
     </div>
 );
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, playlists, onCreatePlaylist, onNavigate, isPlaybarVisible }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists, onCreatePlaylist, onNavigate, isPlaybarVisible }) => {
     const [isCreating, setIsCreating] = useState(false);
     const inputRef = useRef(null);
 

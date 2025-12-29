@@ -451,6 +451,7 @@ function App() {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         activeView={activeView}
+        viewData={viewData}
         playlists={playlists}
         onCreatePlaylist={createPlaylist}
         onNavigate={navigateTo}
