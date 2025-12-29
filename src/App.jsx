@@ -202,28 +202,6 @@ function App() {
     }
   }, [currentIndex, queue, isPlaying]);
 
-  // Media Session API (Background Playback & Notifications)
-  useEffect(() => {
-    if ('mediaSession' in navigator) {
-      const currentSong = queue[currentIndex];
-      if (currentSong) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentSong.name,
-          artist: currentSong.artist || "Unknown",
-          album: currentSong.album || "Vaani",
-          artwork: [{ src: currentSong.image || 'img/vaanilogo.png', sizes: '512x512', type: 'image/jpeg' }]
-        });
-      }
-      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-
-      navigator.mediaSession.setActionHandler('play', togglePlay);
-      navigator.mediaSession.setActionHandler('pause', togglePlay);
-      navigator.mediaSession.setActionHandler('previoustrack', handlePrev);
-      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
-    }
-  }, [currentIndex, queue, isPlaying, togglePlay, handlePrev, handleNext]);
-
-
   // 4. Handle Next / Prev / Ended
   const generateShuffleIndices = (length) => {
     const arr = Array.from({ length }, (_, i) => i);
@@ -336,6 +314,27 @@ function App() {
       handleNext();
     }
   };
+
+  // Media Session API (Background Playback & Notifications)
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      const currentSong = queue[currentIndex];
+      if (currentSong) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentSong.name,
+          artist: currentSong.artist || "Unknown",
+          album: currentSong.album || "Vaani",
+          artwork: [{ src: currentSong.image || 'img/vaanilogo.png', sizes: '512x512', type: 'image/jpeg' }]
+        });
+      }
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+      navigator.mediaSession.setActionHandler('play', togglePlay);
+      navigator.mediaSession.setActionHandler('pause', togglePlay);
+      navigator.mediaSession.setActionHandler('previoustrack', handlePrev);
+      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
+    }
+  }, [currentIndex, queue, isPlaying, togglePlay, handlePrev, handleNext]);
 
 
   // --- Playlist & Like Logic ---
