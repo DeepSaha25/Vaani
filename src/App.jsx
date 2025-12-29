@@ -356,16 +356,57 @@ function App() {
       return;
     }
     setIsSearching(true);
-    setActiveView('search');
+
+    // Only push state if entering search view
+    if (activeView !== 'search') {
+      setActiveView('search');
+      window.history.pushState({ view: 'search', data: null }, '', '');
+    }
+
     const res = await searchSongs(query);
     setSearchResults(res);
   };
 
   // --- Navigation Helpers ---
+  // --- Navigation Helpers ---
+
+  // Handle Browser History (Back Button)
+  useEffect(() => {
+    // Restore state if available (e.g. refresh), otherwise init
+    if (window.history.state) {
+      setActiveView(window.history.state.view);
+      setViewData(window.history.state.data);
+      if (window.history.state.view === 'search') setIsSearching(true);
+    } else {
+      window.history.replaceState({ view: 'home', data: null }, '', '');
+    }
+
+    const onPopState = (event) => {
+      if (event.state) {
+        setActiveView(event.state.view);
+        setViewData(event.state.data);
+        // Manage search state based on view
+        if (event.state.view !== 'search') setIsSearching(false);
+        else setIsSearching(true);
+      } else {
+        setActiveView('home');
+        setIsSearching(false);
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const navigateTo = (view, data = null) => {
+    // Avoid pushing duplicate states on rapid clicks
+    if (activeView === view && JSON.stringify(viewData) === JSON.stringify(data)) return;
+
     setActiveView(view);
     setViewData(data);
-    if (window.innerWidth < 768) setSidebarOpen(false); // Mobile: close sidebar on correct logic
+    if (window.innerWidth < 768) setSidebarOpen(false);
+
+    window.history.pushState({ view, data }, '', '');
   };
 
 
