@@ -81,6 +81,33 @@ export const fetchLrcLibLyrics = async (trackName, artistName, albumName, durati
     }
 };
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+
+export const generateLyricsWithGemini = async (trackName, artistName, albumName) => {
+    try {
+        if (!import.meta.env.VITE_GEMINI_API_KEY) return null;
+
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const prompt = `Generate the lyrics for the song "${trackName}" by "${artistName}". 
+        Please provide the output in LRC format (synced lyrics with timestamps like [mm:ss.xx]) if you know the potential timing or flow, otherwise provide it in standard text format. 
+        Do not include any conversational text like "Here are the lyrics", just the lyrics themselves.`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        // Simple heuristic: check if it looks like LRC
+        const isLrc = /\[\d{2}:\d{2}/.test(text);
+        return { text: text, source: 'gemini', type: isLrc ? 'lrc' : 'text' };
+    } catch (e) {
+        console.error("Gemini lyrics generation failed:", e);
+        return null;
+    }
+};
+
 export const getLyrics = async (song) => {
     try {
         // 1. Try Primary Source (JioSaavn) if ID exists and flag is true
@@ -94,11 +121,17 @@ export const getLyrics = async (song) => {
             }
         }
         
-        // 2. Fallback: LrcLib
+        // 2. Fallback: LrcLib (Free Open Database)
         // Clean artist name (remove "Composer", etc if needed, but usually comma sep is fine)
-        const lyrics = await fetchLrcLibLyrics(song.name, song.artist.split(',')[0], song.album, song.duration);
-        if (lyrics) {
-             return { text: lyrics, source: 'lrclib', type: 'lrc' };
+        const lrcLibLyrics = await fetchLrcLibLyrics(song.name, song.artist.split(',')[0], song.album, song.duration);
+        if (lrcLibLyrics) {
+             return { text: lrcLibLyrics, source: 'lrclib', type: 'lrc' };
+        }
+
+        // 3. Fallback: Gemini AI Generation
+        const geminiLyrics = await generateLyricsWithGemini(song.name, song.artist.split(',')[0], song.album);
+        if (geminiLyrics) {
+            return geminiLyrics;
         }
 
         return null; // No lyrics found
