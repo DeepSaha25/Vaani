@@ -84,13 +84,15 @@ export const fetchLrcLibLyrics = async (trackName, artistName, albumName, durati
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Initialize Gemini
-// NOTE: Hardcoded for immediate deployment success as per user request. 
-// Ideally should be import.meta.env.VITE_GEMINI_API_KEY
-const GEMINI_API_KEY = "AIzaSyDPLiZ9ICoNvbUO2JkKnHzTFaYuBwK7uhY"; 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const generateLyricsWithGemini = async (trackName, artistName, albumName) => {
     try {
+        if (!import.meta.env.VITE_GEMINI_API_KEY) {
+            console.warn("Gemini API Key missing in environment variables.");
+            return null;
+        }
+
         console.log(`Generating lyrics for ${trackName} via Gemini...`);
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         
