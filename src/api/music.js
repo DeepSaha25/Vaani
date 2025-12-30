@@ -46,14 +46,61 @@ const transformSong = (item) => {
     };
 };
 
-export const getLyrics = async (id) => {
+export const fetchLrcLibLyrics = async (trackName, artistName, albumName, duration) => {
     try {
-        const response = await fetch(`${BASE_URL}/lyrics?id=${id}`);
-        if (!response.ok) return null;
-        const data = await response.json();
-        if (data.success && data.data && data.data.lyrics) {
-            return data.data.lyrics; // Returns string of lyrics (usually html or plain text)
+        // Construct query parameters
+        const params = new URLSearchParams({
+            track_name: trackName,
+            artist_name: artistName,
+            duration: duration // LrcLib uses exact duration for better matching
+        });
+        if (albumName && albumName !== "Single") params.append('album_name', albumName);
+
+        const response = await fetch(`https://lrclib.net/api/get?${params.toString()}`);
+        if (!response.ok) {
+            // Try search if strict get fails
+             const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(trackName + " " + artistName)}`);
+             if (searchRes.ok) {
+                 const searchData = await searchRes.json();
+                 if (searchData && searchData.length > 0) {
+                     // Pick the best match (closest duration)
+                     const best = searchData.reduce((prev, curr) => {
+                         return Math.abs(curr.duration - duration) < Math.abs(prev.duration - duration) ? curr : prev;
+                     });
+                     return best.syncedLyrics || best.plainLyrics;
+                 }
+             }
+             return null;
         }
+
+        const data = await response.json();
+        return data.syncedLyrics || data.plainLyrics;
+    } catch (e) {
+        console.error("LrcLib fetch failed:", e);
+        return null;
+    }
+};
+
+export const getLyrics = async (song) => {
+    try {
+        // 1. Try Primary Source (JioSaavn) if ID exists and flag is true
+        if (song.id && song.hasLyrics) {
+            const response = await fetch(`${BASE_URL}/lyrics?id=${song.id}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data && data.data.lyrics) {
+                    return { text: data.data.lyrics, source: 'saavn', type: 'html' }; 
+                }
+            }
+        }
+        
+        // 2. Fallback: LrcLib
+        // Clean artist name (remove "Composer", etc if needed, but usually comma sep is fine)
+        const lyrics = await fetchLrcLibLyrics(song.name, song.artist.split(',')[0], song.album, song.duration);
+        if (lyrics) {
+             return { text: lyrics, source: 'lrclib', type: 'lrc' };
+        }
+
         return null; // No lyrics found
     } catch (e) {
         console.error("Error fetching lyrics:", e);
