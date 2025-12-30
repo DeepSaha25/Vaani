@@ -1,39 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
-const AudioVisualizer = ({ audioRef, isPlaying }) => {
+const AudioVisualizer = ({ audioRef, isPlaying, analyser }) => {
     const canvasRef = useRef(null);
-    const contextRef = useRef(null);
-    const sourceRef = useRef(null);
-    const analyserRef = useRef(null);
     const animationRef = useRef(null);
 
     useEffect(() => {
-        if (!audioRef.current || !canvasRef.current) return;
-
-        const initAudio = () => {
-            if (!contextRef.current) {
-                // Singleton AudioContext
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                contextRef.current = new AudioContext();
-
-                analyserRef.current = contextRef.current.createAnalyser();
-                analyserRef.current.fftSize = 256; // 128 bars
-
-                // Connect audio element source
-                // Note: creating source only once to avoid errors
-                try {
-                    sourceRef.current = contextRef.current.createMediaElementSource(audioRef.current);
-                    sourceRef.current.connect(analyserRef.current);
-                    analyserRef.current.connect(contextRef.current.destination);
-                } catch (e) {
-                    // Source might already be connected if re-mounting
-                    console.warn("Source already connected or error:", e);
-                }
-            }
-        };
-
-        // Initialize on mount/first interaction
-        initAudio();
+        if (!analyser || !canvasRef.current) return;
 
         // Canvas Setup
         const canvas = canvasRef.current;
@@ -46,11 +18,12 @@ const AudioVisualizer = ({ audioRef, isPlaying }) => {
         ctx.scale(dpr, dpr);
 
         const renderFrame = () => {
-            if (!analyserRef.current) return;
+            // Safety check if analyser is still valid
+            if (!analyser) return;
 
-            const bufferLength = analyserRef.current.frequencyBinCount;
+            const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
-            analyserRef.current.getByteFrequencyData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
 
             ctx.clearRect(0, 0, rect.width, rect.height);
 
@@ -84,21 +57,16 @@ const AudioVisualizer = ({ audioRef, isPlaying }) => {
         };
 
         if (isPlaying) {
-            // Resume context if suspended
-            if (contextRef.current?.state === 'suspended') {
-                contextRef.current.resume();
-            }
             renderFrame();
         } else {
-            // Clear canvas or show flat line?
-            // Let's keep the last frame or clear
+            // Cancel animation if paused
             if (animationRef.current) cancelAnimationFrame(animationRef.current);
         }
 
         return () => {
             if (animationRef.current) cancelAnimationFrame(animationRef.current);
         };
-    }, [audioRef, isPlaying]);
+    }, [analyser, isPlaying]);
 
     return (
         <canvas

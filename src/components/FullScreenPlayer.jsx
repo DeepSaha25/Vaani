@@ -134,7 +134,7 @@ const FullScreenPlayer = ({
 
                     {/* Visualizer Background Overlay */}
                     <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen scale-y-150 origin-bottom">
-                        <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
+                        <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} analyser={analyser} />
                     </div>
 
                     {/* Album Art */}
