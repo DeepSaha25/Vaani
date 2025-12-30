@@ -148,15 +148,22 @@ function App() {
       await saveSongToDB(song, blob);
 
       // 2. Trigger File Download (Local File)
+      // Sanitize filename
+      const safeName = song.name.replace(/[^a-z0-9\s-]/gi, '').trim() || 'audio_track';
+
+      // Determine extension based on MIME type if possible, or default to m4a (safer for JioSaavn audio)
+      let extension = 'm4a';
+      if (blob.type.includes('mpeg') || blob.type.includes('mp3')) extension = 'mp3';
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${song.name}.mp4`;
+      a.download = `${safeName}.${extension}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
 
-      toast.innerText = "Downloaded successfully!";
+      toast.innerText = "Saved to 'Downloads' folder!";
       setTimeout(() => toast.remove(), 3000);
 
       // Update state
