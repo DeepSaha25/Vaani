@@ -42,22 +42,20 @@ function App() {
       analyserRef.current = analyser;
 
       // Connect audio element
-      const source = ctx.createMediaElementSource(audioRef.current);
-      audioSourceRef.current = source;
-
-      source.connect(analyser);
-      analyser.connect(ctx.destination);
+      // Check if we already have a source (shouldn't happen if we check context, but for safety in dev)
+      if (!audioSourceRef.current) {
+        const source = ctx.createMediaElementSource(audioRef.current);
+        audioSourceRef.current = source;
+        source.connect(analyser);
+        analyser.connect(ctx.destination);
+      }
     } catch (e) {
       console.error("Web Audio Init Error:", e);
     }
 
-    // Cleanup? Usually we keep this alive for the app's lifetime
-    return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
-    };
+    // No cleanup: We keep the AudioContext alive for the app's lifetime
+    // This prevents "InvalidStateError" when re-mounting in Strict Mode
+    // because the audio element is already connected to a source.
   }, []);
 
   // Resume AudioContext on user interaction/play
@@ -494,6 +492,7 @@ function App() {
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
+        crossOrigin="anonymous"
         onTimeUpdate={() => {
           setCurrentTime(audioRef.current.currentTime);
           setDuration(audioRef.current.duration);
