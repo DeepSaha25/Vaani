@@ -86,6 +86,20 @@ function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false); // Fullscreen player state
 
+  // --- Player State Helpers ---
+  const openPlayer = useCallback(() => {
+    setIsPlayerOpen(true);
+    // Push new state only if not already open (to avoid history spam)
+    if (!window.history.state?.playerOpen) {
+      window.history.pushState({ ...window.history.state, playerOpen: true }, '', '');
+    }
+  }, []);
+
+  const closePlayer = useCallback(() => {
+    // We rely on popstate to actually close it, so we just go back if open
+    window.history.back();
+  }, []);
+
   // --- Discovery Logic (Radio) ---
   const startRadio = (seedSong) => {
     // 1. Create a "mix" based on the seed song
@@ -227,7 +241,9 @@ function App() {
     });
 
     setIsPlaying(true);
-  }, [queue, isShuffle, currentIndex]);
+    // Auto-expand player on play (if not already queueing or something specific)
+    openPlayer();
+  }, [queue, isShuffle, currentIndex, openPlayer]);
 
 
   // 2. Play/Pause Toggle
@@ -454,6 +470,7 @@ function App() {
       setActiveView(window.history.state.view);
       setViewData(window.history.state.data);
       if (window.history.state.view === 'search') setIsSearching(true);
+      if (window.history.state.playerOpen) setIsPlayerOpen(true); // Restore player state
     } else {
       window.history.replaceState({ view: 'home', data: null }, '', '');
     }
@@ -462,12 +479,22 @@ function App() {
       if (event.state) {
         setActiveView(event.state.view);
         setViewData(event.state.data);
+
+        // Handle Player State
+        if (event.state.playerOpen) {
+          setIsPlayerOpen(true);
+        } else {
+          setIsPlayerOpen(false);
+        }
+
         // Manage search state based on view
         if (event.state.view !== 'search') setIsSearching(false);
         else setIsSearching(true);
       } else {
+        // Fallback to initial
         setActiveView('home');
         setIsSearching(false);
+        setIsPlayerOpen(false);
       }
     };
 
@@ -483,7 +510,7 @@ function App() {
     setViewData(data);
     if (window.innerWidth < 768) setSidebarOpen(false);
 
-    window.history.pushState({ view, data }, '', '');
+    window.history.pushState({ view, data, playerOpen: false }, '', '');
   };
 
 
@@ -573,12 +600,12 @@ function App() {
           if (queue[currentIndex]) handleDownload(queue[currentIndex]);
         }}
         isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
-        onOpenFullScreen={() => setIsPlayerOpen(true)}
+        onOpenFullScreen={openPlayer}
       />
 
       <FullScreenPlayer
         isOpen={isPlayerOpen}
-        onClose={() => setIsPlayerOpen(false)}
+        onClose={closePlayer}
 
         currentSong={queue[currentIndex]}
         isPlaying={isPlaying}
