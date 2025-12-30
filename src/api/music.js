@@ -116,9 +116,10 @@ export const generateLyricsWithGemini = async (trackName, artistName, albumName)
     }
 };
 
+// Restore client-side logic
 export const getLyrics = async (song) => {
     try {
-        // 1. Try Primary Source (JioSaavn) if ID exists and flag is true
+        // 1. Try Primary Source (JioSaavn)
         if (song.id && song.hasLyrics) {
             const response = await fetch(`${BASE_URL}/lyrics?id=${song.id}`);
             if (response.ok) {
@@ -129,7 +130,7 @@ export const getLyrics = async (song) => {
             }
         }
         
-        // 2. Fallback: LrcLib (Free Open Database)
+        // 2. Fallback: LrcLib
         // Clean artist name (remove "Composer", etc if needed, but usually comma sep is fine)
         const lrcLibLyrics = await fetchLrcLibLyrics(song.name, song.artist.split(',')[0], song.album, song.duration);
         if (lrcLibLyrics) {
