@@ -138,7 +138,7 @@ const FullScreenPlayer = ({
                     </div>
 
                     {/* Album Art */}
-                    <div className="relative z-10 w-full max-w-sm aspect-square shadow-2xl rounded-2xl overflow-hidden group">
+                    <div className="relative z-10 w-full max-w-lg aspect-video shadow-2xl rounded-2xl overflow-hidden group">
                         <img
                             src={currentSong?.image || 'img/cover.jpg'}
                             alt={currentSong?.name}
@@ -148,11 +148,11 @@ const FullScreenPlayer = ({
                     </div>
 
                     {/* Song Info (Large) */}
-                    <div className="mt-12 text-center z-10 max-w-md w-full">
-                        <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight drop-shadow-lg line-clamp-2">
-                            {currentSong?.name}
+                    <div className="mt-8 text-center z-10 max-w-2xl w-full px-4">
+                        <h1 className="text-2xl md:text-3xl font-black text-white mb-2 leading-tight drop-shadow-lg line-clamp-2">
+                            {currentSong?.name ? (new DOMParser().parseFromString(currentSong.name, "text/html").body.textContent) : ""}
                         </h1>
-                        <p className="text-xl text-white/60 font-medium tracking-wide">
+                        <p className="text-lg text-white/60 font-medium tracking-wide">
                             {currentSong?.artist}
                         </p>
                     </div>
