@@ -86,6 +86,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                             <SearchIcon active={activeView === 'search'} />
                             <span>Search</span>
                         </div>
+
+                        <div
+                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition p-2 rounded-md ${activeView === 'genres' ? 'bg-white/10 text-white' : 'text-[#b3b3b3] hover:text-white hover:bg-white/5'}`}
+                            onClick={() => onNavigate('genres')}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeView === 'genres' ? "#fff" : "#b3b3b3"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            <span>Browse</span>
+                        </div>
                     </div>
                 </div>
 

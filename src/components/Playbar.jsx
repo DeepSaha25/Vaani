@@ -45,8 +45,6 @@ const Playbar = ({
     isShuffle,
     toggleShuffle,
     onDownload,
-    toggleShuffle,
-    onDownload,
     isDownloaded,
     onOpenFullScreen
 }) => {
