@@ -160,7 +160,7 @@ const FullScreenPlayer = ({
 
                 {/* 2. LYRICS MODE */}
                 <div className={`absolute inset-0 transition-opacity duration-500 bg-black/40 backdrop-blur-sm ${viewMode === 'lyrics' ? 'opacity-100 pointer-events-auto z-20' : 'opacity-0 pointer-events-none'}`}>
-                    <LyricsView currentSong={currentSong} />
+                    <LyricsView currentSong={currentSong} currentTime={currentTime} />
                 </div>
 
                 {/* 3. QUEUE MODE */}
