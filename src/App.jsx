@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
+import FullScreenPlayer from './components/FullScreenPlayer';
 import { searchSongs, getTrendingSongs } from './api/music';
 import { saveSongToDB, getAllDownloadedSongs, deleteSongFromDB } from './utils/db';
 
@@ -37,8 +38,7 @@ function App() {
   const [activeView, setActiveView] = useState('home'); // 'home', 'search', 'library', 'playlist', 'liked'
   const [viewData, setViewData] = useState(null); // Metadata for current view (e.g. playlist ID)
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+
 
   // --- Load Data from Storage ---
   const [trendingSongs, setTrendingSongs] = useState([]);
@@ -514,6 +514,45 @@ function App() {
           if (queue[currentIndex]) handleDownload(queue[currentIndex]);
         }}
         isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
+        onOpenFullScreen={() => setIsPlayerOpen(true)}
+      />
+
+      <FullScreenPlayer
+        isOpen={isPlayerOpen}
+        onClose={() => setIsPlayerOpen(false)}
+
+        currentSong={queue[currentIndex]}
+        isPlaying={isPlaying}
+        onPlayPause={togglePlay}
+        onNext={handleNext}
+        onPrev={handlePrev}
+
+        currentTime={currentTime}
+        duration={duration}
+        onSeek={(time) => {
+          if (audioRef.current) audioRef.current.currentTime = time;
+        }}
+
+        volume={volume}
+        onVolumeChange={(v) => { setVolume(v); if (audioRef.current) audioRef.current.volume = v; }}
+
+        loopMode={loopMode}
+        toggleLoop={() => setLoopMode(prev => prev === 'off' ? 'all' : (prev === 'all' ? 'one' : 'off'))}
+
+        isShuffle={isShuffle}
+        toggleShuffle={() => {
+          setIsShuffle(!isShuffle);
+          if (!isShuffle && queue.length > 0) generateShuffleIndices(queue.length);
+        }}
+
+        onDownload={() => {
+          if (queue[currentIndex]) handleDownload(queue[currentIndex]);
+        }}
+        isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
+
+        audioRef={audioRef}
+        queue={queue}
+        onPlayQueueSong={playSong}
       />
 
     </div>

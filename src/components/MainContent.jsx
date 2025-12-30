@@ -2,12 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // Local imports removed (now in App)
 
 // Icons
-const PlayIcon = () => (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="11" fill="#a855f7" />
-        <path d="M10 8L16 12L10 16V8Z" fill="#000" />
-    </svg>
-);
+
 
 const HeartIcon = ({ filled, onClick }) => (
     <div onClick={(e) => { e.stopPropagation(); onClick && onClick(); }} className="cursor-pointer hover:scale-110 transition-transform">

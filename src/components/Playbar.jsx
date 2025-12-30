@@ -45,7 +45,10 @@ const Playbar = ({
     isShuffle,
     toggleShuffle,
     onDownload,
-    isDownloaded
+    toggleShuffle,
+    onDownload,
+    isDownloaded,
+    onOpenFullScreen
 }) => {
     const isReady = !!currentSong;
     const progressPercent = duration ? (currentTime / duration) * 100 : 0;
@@ -59,7 +62,7 @@ const Playbar = ({
     };
 
     return (
-        <div className={`fixed bottom-0 left-0 right-0 h-[calc(84px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl`}>
+        <div className={`fixed bottom-0 left-0 right-0 h-[calc(84px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] glass-header z-50 transition-all duration-500 ease-in-out ${!isReady ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'} backdrop-blur-2xl border-t border-white/10 shadow-2xl cursor-pointer`} onClick={onOpenFullScreen}>
 
             {/* --- Mobile Layout (< md) --- */}
             {/* --- Mobile Layout (< md) --- */}
@@ -79,21 +82,21 @@ const Playbar = ({
 
                     {/* 2. Controls (Center) - Fixed width, centered */}
                     <div className="flex items-center justify-center gap-4">
-                        <button onClick={toggleShuffle} className="hidden sm:block text-gray-400 hover:text-white transition"><ShuffleIcon active={isShuffle} /></button>
-                        <button onClick={onPrev} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
+                        <button onClick={(e) => { e.stopPropagation(); toggleShuffle(); }} className="hidden sm:block text-gray-400 hover:text-white transition"><ShuffleIcon active={isShuffle} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
-                        <button onClick={onPlayPause} className="bg-white rounded-full p-2.5 text-black hover:scale-110 transition shadow-lg hover:shadow-white/20 active:scale-95">
+                        <button onClick={(e) => { e.stopPropagation(); onPlayPause(); }} className="bg-white rounded-full p-2.5 text-black hover:scale-110 transition shadow-lg hover:shadow-white/20 active:scale-95">
                             {isPlaying ? (
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
                             ) : (
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                             )}
                         </button>
-                        <button onClick={onNext} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
+                        <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
-                        <button onClick={toggleLoop} className="hidden sm:block text-gray-400 hover:text-white transition"><LoopIcon mode={loopMode} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); toggleLoop(); }} className="hidden sm:block text-gray-400 hover:text-white transition"><LoopIcon mode={loopMode} /></button>
                         {/* Mobile Download Button (in controls row for <sm, or separate?) */}
                         {/* Let's put it in the extra menu or just here if space allows. */}
                         {/* For now, maybe just hidden on very small, or replacing shuffle/loop logic */}
@@ -170,16 +173,16 @@ const Playbar = ({
                 <div className="flex flex-col items-center flex-1 max-w-[600px]">
                     {/* Buttons */}
                     <div className="flex items-center gap-6 mb-2">
-                        <button onClick={toggleShuffle} className="hover:scale-110 transition text-gray-400 hover:text-white">
+                        <button onClick={(e) => { e.stopPropagation(); toggleShuffle(); }} className="hover:scale-110 transition text-gray-400 hover:text-white">
                             <ShuffleIcon active={isShuffle} />
                         </button>
 
-                        <button onClick={onPrev} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
+                        <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
 
                         <button
-                            onClick={onPlayPause}
+                            onClick={(e) => { e.stopPropagation(); onPlayPause(); }}
                             className="bg-white rounded-full p-2.5 hover:scale-110 transition active:scale-95 shadow-lg shadow-white/10 hover:shadow-white/30"
                         >
                             {isPlaying ? (
@@ -189,11 +192,11 @@ const Playbar = ({
                             )}
                         </button>
 
-                        <button onClick={onNext} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
+                        <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="hover:text-white text-gray-400 hover:scale-110 transition active:scale-95">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                         </button>
 
-                        <button onClick={toggleLoop} className="hover:scale-110 transition text-gray-400 hover:text-white">
+                        <button onClick={(e) => { e.stopPropagation(); toggleLoop(); }} className="hover:scale-110 transition text-gray-400 hover:text-white">
                             <LoopIcon mode={loopMode} />
                         </button>
 
@@ -228,6 +231,7 @@ const Playbar = ({
                                 min="0"
                                 max={duration || 100}
                                 value={currentTime || 0}
+                                onClick={(e) => e.stopPropagation()}
                                 onChange={(e) => onSeek(e.target.value)}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
