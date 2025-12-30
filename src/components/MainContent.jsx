@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { GENRES, getSongsByGenre } from '../api/genres';
 // Local imports removed (now in App)
 
 // Icons
@@ -27,8 +28,14 @@ const TrashIcon = ({ onClick }) => (
 );
 
 // Sub-components
-const AddToPlaylistMenu = ({ playlists, onAdd, onClose }) => (
+const AddToPlaylistMenu = ({ playlists, onAdd, onClose, onStartRadio }) => (
     <div className="absolute right-0 bottom-full mb-2 bg-[#282828] p-2 rounded shadow-xl min-w-[160px] z-50 flex flex-col gap-1 max-h-48 overflow-y-auto border border-white/10">
+        <div
+            className="px-2 py-2 hover:bg-white/10 cursor-pointer text-sm rounded bg-[#333] mb-1 font-bold text-green-400"
+            onClick={(e) => { e.stopPropagation(); onStartRadio && onStartRadio(); onClose(); }}
+        >
+            ✦ Start Radio
+        </div>
         <div className="text-xs text-gray-400 px-2 pb-1 border-b border-white/10 mb-1 font-bold uppercase tracking-wider">Add to Playlist</div>
         {playlists.length > 0 ? playlists.map(pl => (
             <div
@@ -56,8 +63,12 @@ const formatTime = (seconds) => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist, onDownload, isDownloaded }) => {
+const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist, onDownload, isDownloaded, onStartRadio }) => {
     const [showMenu, setShowMenu] = useState(false);
+
+    // Add Start Radio support
+    // We need to pass onStartRadio from props
+
     return (
         <div
             className={`song-row flex items-center p-2 rounded-md cursor-pointer hover:bg-white/10 ${isCurrent ? 'bg-white/20' : ''}`}
@@ -106,6 +117,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
                                 playlists={playlists}
                                 onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
                                 onClose={() => setShowMenu(false)}
+                                onStartRadio={() => props.onStartRadio && props.onStartRadio(song)}
                             />
                         )}
                     </div>
@@ -116,7 +128,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
     );
 };
 
-const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists, onDownload }) => {
+const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists, onDownload, onStartRadio }) => {
     const [showMenu, setShowMenu] = useState(false);
     return (
         <div
@@ -159,6 +171,7 @@ const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists,
                             playlists={playlists}
                             onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
                             onClose={() => setShowMenu(false)}
+                            onStartRadio={() => onStartRadio && onStartRadio(song)}
                         />
                     )}
                 </div>
@@ -187,7 +200,8 @@ const MainContent = ({
     onNavigate,
     downloads = [],
     onDownload,
-    onDeleteDownload
+    onDeleteDownload,
+    onStartRadio
 }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [searchTerm, setSearchTerm] = useState("");
@@ -285,6 +299,7 @@ const MainContent = ({
                                     playlists={playlists}
                                     onPlay={onPlay}
                                     onDownload={onDownload}
+                                    onStartRadio={onStartRadio}
                                 />
                             ))}
                         </div>
@@ -294,6 +309,70 @@ const MainContent = ({
         }
 
 
+
+        // --- GENRE BROWSING ---
+        if (activeView === 'genres') {
+            return (
+                <div className="p-6 md:p-8 animate-fade-in pb-32">
+                    <h2 className="text-3xl font-black text-white/90 mb-8 tracking-tight">Browse All</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {GENRES.map(genre => (
+                            <div
+                                key={genre.id}
+                                className={`h-40 relative overflow-hidden rounded-xl cursor-pointer hover:scale-[1.02] transition-all bg-gradient-to-br ${genre.color} flex p-4`}
+                                onClick={() => onNavigate('genre_songs', genre.id)}
+                            >
+                                <span className="font-bold text-2xl text-white">{genre.name}</span>
+                                <div className="absolute -bottom-2 -right-4 text-7xl opacity-30 transform rotate-[25deg] shadow-xl">
+                                    {genre.icon}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
+        }
+
+        // --- GENRE SONGS VIEW ---
+        if (activeView === 'genre_songs') {
+            const genre = GENRES.find(g => g.id === viewData);
+            const songs = getSongsByGenre(viewData, trendingSongs); // Assuming trendingSongs for filtering
+
+            return (
+                <div className="p-6 pt-0 animate-fade-in">
+                    <div className={`flex flex-col md:flex-row md:items-end gap-8 mb-8 pt-10 bg-gradient-to-b ${genre?.color?.split(' ')[0]} to-transparent p-8 rounded-b-2xl -mx-6 shadow-lg backdrop-blur-3xl border-b border-white/5`}>
+                        <div className="w-40 h-40 bg-white/20 shadow-2xl flex items-center justify-center text-7xl rounded-2xl mx-auto md:mx-0">
+                            {genre?.icon}
+                        </div>
+                        <div className="text-center md:text-left">
+                            <p className="uppercase text-xs font-bold tracking-widest mb-2 text-white/70">Genre</p>
+                            <h1 className="text-4xl md:text-7xl font-black mb-4 tracking-tighter drop-shadow-2xl">{genre?.name}</h1>
+                        </div>
+                    </div>
+
+                    <div className="min-h-[300px] bg-black/20 backdrop-blur-sm -mx-6 px-8 py-6 rounded-3xl mt-4">
+                        <div className="flex flex-col gap-1">
+                            {songs.map((song, i) => (
+                                <SongRow
+                                    key={song.id || i}
+                                    song={song}
+                                    index={i}
+                                    isCurrent={currentSong?.id === song.id}
+                                    onPlay={() => onPlay(song, songs)}
+                                    isLiked={likedSongs.some(s => s.id === song.id)}
+                                    toggleLike={toggleLike}
+                                    playlists={playlists}
+                                    addToPlaylist={addToPlaylist}
+                                    onDownload={onDownload}
+                                    isDownloaded={downloads.some(d => d.id === song.id)}
+                                    onStartRadio={onStartRadio}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
 
         // --- DOWNLOADS VIEW ---
         if (activeView === 'downloads') {
@@ -435,6 +514,7 @@ const MainContent = ({
                                     playlists={playlists}
                                     onPlay={onPlay}
                                     onDownload={onDownload}
+                                    onStartRadio={onStartRadio}
                                 />
                             )) : (
                                 // Loading Skeletons

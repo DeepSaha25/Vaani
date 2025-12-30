@@ -38,7 +38,20 @@ function App() {
   const [activeView, setActiveView] = useState('home'); // 'home', 'search', 'library', 'playlist', 'liked'
   const [viewData, setViewData] = useState(null); // Metadata for current view (e.g. playlist ID)
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false); // Fullscreen player state
 
+  // --- Discovery Logic (Radio) ---
+  const startRadio = (seedSong) => {
+    // 1. Create a "mix" based on the seed song
+    // For now, we take the seed song + shuffled trending songs
+    const mix = [seedSong, ...trendingSongs.filter(s => s.id !== seedSong.id).sort(() => Math.random() - 0.5)];
+
+    // 2. Play the mix
+    playSong(seedSong, mix);
+    alert(`Started Radio based on "${seedSong.name}"`);
+  };
 
   // --- Load Data from Storage ---
   const [trendingSongs, setTrendingSongs] = useState([]);
@@ -484,6 +497,7 @@ function App() {
         downloads={downloads}
         onDownload={handleDownload}
         onDeleteDownload={handleDeleteDownload}
+        onStartRadio={startRadio}
       />
 
       <Playbar
