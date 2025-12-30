@@ -137,22 +137,23 @@ const FullScreenPlayer = ({
                         <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} analyser={analyser} />
                     </div>
 
-                    {/* Album Art */}
-                    <div className="relative z-10 w-full max-w-lg aspect-video shadow-2xl rounded-2xl overflow-hidden group">
-                        <img
-                            src={currentSong?.image || 'img/cover.jpg'}
-                            alt={currentSong?.name}
-                            className="w-full h-full object-cover transform transition duration-1000 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]"></div>
+                    {/* Album Art: Contained, limited height */}
+                    <div className="relative z-10 w-full max-w-4xl flex items-center justify-center p-4" style={{ height: '55vh' }}>
+                        <div className="relative h-full aspect-square shadow-2xl rounded-2xl overflow-hidden group">
+                            <img
+                                src={currentSong?.image || 'img/cover.jpg'}
+                                alt={currentSong?.name}
+                                className="w-full h-full object-contain bg-black/50"
+                            />
+                        </div>
                     </div>
 
-                    {/* Song Info (Large) */}
-                    <div className="mt-8 text-center z-10 max-w-2xl w-full px-4">
-                        <h1 className="text-2xl md:text-3xl font-black text-white mb-2 leading-tight drop-shadow-lg line-clamp-2">
+                    {/* Song Info (Separate Container) */}
+                    <div className="mt-4 text-center z-10 max-w-3xl w-full px-4 flex flex-col items-center">
+                        <h1 className="text-xl md:text-2xl font-bold text-white mb-2 leading-snug drop-shadow-md line-clamp-2 max-w-[80%]">
                             {currentSong?.name ? (new DOMParser().parseFromString(currentSong.name, "text/html").body.textContent) : ""}
                         </h1>
-                        <p className="text-lg text-white/60 font-medium tracking-wide">
+                        <p className="text-base text-white/60 font-medium tracking-wide line-clamp-1">
                             {currentSong?.artist}
                         </p>
                     </div>

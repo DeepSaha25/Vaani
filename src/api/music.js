@@ -30,6 +30,9 @@ const transformSong = (item) => {
         artistNames = item.primaryArtists; // Sometimes string or different format
     }
 
+    // Lyrics: Check if available
+    const hasLyrics = item.hasLyrics === "true" || item.has_lyrics === "true" || item.hasLyrics === true;
+
     return {
         id: item.id,
         name: item.name || item.title,
@@ -38,11 +41,29 @@ const transformSong = (item) => {
         url: url,
         album: item.album ? item.album.name : "Single",
         duration: item.duration,
-        isApiSong: true
+        isApiSong: true,
+        hasLyrics: hasLyrics
     };
 };
 
+export const getLyrics = async (id) => {
+    try {
+        const response = await fetch(`${BASE_URL}/lyrics?id=${id}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data.success && data.data && data.data.lyrics) {
+            return data.data.lyrics; // Returns string of lyrics (usually html or plain text)
+        }
+        return null; // No lyrics found
+    } catch (e) {
+        console.error("Error fetching lyrics:", e);
+        return null;
+    }
+};
+
 const fetchSongDetails = async (ids) => {
+// ... existing fetchSongDetails
+
     try {
         if (!ids || ids.length === 0) return [];
         const response = await fetch(`${BASE_URL}/songs?ids=${ids.join(',')}`);
