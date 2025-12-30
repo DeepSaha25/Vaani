@@ -58,10 +58,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
             {/* Sidebar Container */}
             {/* Sidebar Container */}
             <div className={`
-                fixed md:static inset-y-0 left-0 z-40 w-[240px] md:w-[300px] md:h-full glass-panel p-2 pt-[calc(0.5rem+env(safe-area-inset-top))] flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
+                fixed md:static inset-y-0 left-0 z-[60] w-[280px] md:w-[300px] h-full md:h-auto glass-panel p-2 pt-[calc(1rem+env(safe-area-inset-top))] flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                ${isPlaybarVisible ? 'pb-[calc(90px+env(safe-area-inset-bottom))] md:pb-2' : ''}
+                pb-[calc(100px+env(safe-area-inset-bottom))] md:pb-2
             `}>
                 {/* Nav Section */}
                 <div className="bg-transparent p-5 flex flex-col gap-5">
@@ -116,7 +116,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                     </div>
 
                     {/* Scrollable List */}
-                    <div className="flex-1 overflow-y-auto px-2 pb-20 scrollbar-hide">
+                    <div className="flex-1 overflow-y-auto px-2 pb-4 scrollbar-hide min-h-0">
                         {/* Liked Songs Item */}
                         <div
                             className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'liked' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
