@@ -31,7 +31,8 @@ const FullScreenPlayer = ({
     isDownloaded,
     audioRef,
     queue,
-    onPlayQueueSong // function to play song from queue
+    onPlayQueueSong, // function to play song from queue
+    analyser
 }) => {
     const [viewMode, setViewMode] = useState('art'); // 'art', 'lyrics', 'queue'
     const [bgColor, setBgColor] = useState('#121212'); // Default dark

@@ -16,10 +16,56 @@ const STORAGE_KEYS = {
 function App() {
   // --- Audio State ---
   const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const audioSourceRef = useRef(null);
+  const analyserRef = useRef(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+
+  // Initialize Web Audio API once
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    // Prevent double init
+    if (audioContextRef.current) return;
+
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      audioContextRef.current = ctx;
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+
+      // Connect audio element
+      const source = ctx.createMediaElementSource(audioRef.current);
+      audioSourceRef.current = source;
+
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+    } catch (e) {
+      console.error("Web Audio Init Error:", e);
+    }
+
+    // Cleanup? Usually we keep this alive for the app's lifetime
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
+  // Resume AudioContext on user interaction/play
+  useEffect(() => {
+    if (isPlaying && audioContextRef.current?.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  }, [isPlaying]);
 
   // --- Queue & Playback Logic ---
   const [queue, setQueue] = useState([]); // List of song objects
@@ -565,6 +611,7 @@ function App() {
         isDownloaded={queue[currentIndex] && downloads.some(d => d.id === queue[currentIndex].id)}
 
         audioRef={audioRef}
+        analyser={analyserRef.current}
         queue={queue}
         onPlayQueueSong={playSong}
       />
