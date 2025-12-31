@@ -203,7 +203,7 @@ const fetchArtistSongs = async (id) => {
 
 export const searchSongs = async (query) => {
   try {
-    const response = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
+    const response = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(query)}&limit=50`);
     if (!response.ok) throw new Error('Network response was not ok');
     
     const data = await response.json();

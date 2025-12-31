@@ -146,14 +146,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                         </div>
 
                         {/* Reference for new playlist input */}
+                        {/* Reference for new playlist input */}
                         {isCreating && (
-                            <div className="flex items-center gap-3 p-2 rounded-md bg-white/5 mx-0 mb-1">
-                                <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xl">🎵</div>
+                            <div className="flex items-center gap-2 p-2 rounded-md bg-white/5 mx-0 mb-1 border border-purple-500/50">
+                                <div className="w-8 h-8 flex items-center justify-center text-lg">🎵</div>
                                 <input
                                     ref={inputRef}
                                     type="text"
-                                    className="bg-transparent text-white text-sm font-semibold w-full outline-none border-b border-purple-500 placeholder-gray-500"
-                                    placeholder="Playlist Name"
+                                    className="bg-transparent text-white text-sm font-semibold w-full outline-none placeholder-gray-500"
+                                    placeholder="Name"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             if (e.target.value.trim()) {
@@ -163,8 +164,35 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                                         }
                                         if (e.key === 'Escape') setIsCreating(false);
                                     }}
-                                    onBlur={() => setIsCreating(false)}
                                 />
+                                <div className="flex gap-1">
+                                    <button
+                                        onMouseDown={(e) => {
+                                            e.preventDefault(); // Prevent blur
+                                            if (inputRef.current && inputRef.current.value.trim()) {
+                                                onCreatePlaylist(inputRef.current.value.trim());
+                                                setIsCreating(false);
+                                            }
+                                        }}
+                                        className="p-1.5 hover:bg-white/20 rounded-full text-green-400 transition"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            setIsCreating(false);
+                                        }}
+                                        className="p-1.5 hover:bg-white/20 rounded-full text-red-400 transition"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         )}
 
