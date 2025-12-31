@@ -106,16 +106,7 @@ function App() {
     window.history.back();
   }, []);
 
-  // --- Discovery Logic (Radio) ---
-  const startRadio = (seedSong) => {
-    // 1. Create a "mix" based on the seed song
-    // For now, we take the seed song + shuffled trending songs
-    const mix = [seedSong, ...trendingSongs.filter(s => s.id !== seedSong.id).sort(() => Math.random() - 0.5)];
 
-    // 2. Play the mix
-    playSong(seedSong, mix);
-    alert(`Started Radio based on "${seedSong.name}"`);
-  };
 
   // --- Load Data from Storage ---
   const [trendingSongs, setTrendingSongs] = useState([]);
@@ -582,7 +573,7 @@ function App() {
         downloads={downloads}
         onDownload={handleDownload}
         onDeleteDownload={handleDeleteDownload}
-        onStartRadio={startRadio}
+
       />
 
       <Playbar

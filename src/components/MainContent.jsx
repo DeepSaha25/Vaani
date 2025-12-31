@@ -28,14 +28,9 @@ const TrashIcon = ({ onClick }) => (
 );
 
 // Sub-components
-const AddToPlaylistMenu = ({ playlists, onAdd, onClose, onStartRadio }) => (
+const AddToPlaylistMenu = ({ playlists, onAdd, onClose }) => (
     <div className="absolute right-0 bottom-full mb-2 bg-[#282828] p-2 rounded shadow-xl min-w-[160px] z-50 flex flex-col gap-1 max-h-48 overflow-y-auto border border-white/10">
-        <div
-            className="px-2 py-2 hover:bg-white/10 cursor-pointer text-sm rounded bg-[#333] mb-1 font-bold text-green-400"
-            onClick={(e) => { e.stopPropagation(); onStartRadio && onStartRadio(); onClose(); }}
-        >
-            ✦ Start Radio
-        </div>
+
         <div className="text-xs text-gray-400 px-2 pb-1 border-b border-white/10 mb-1 font-bold uppercase tracking-wider">Add to Playlist</div>
         {playlists.length > 0 ? playlists.map(pl => (
             <div
@@ -63,7 +58,7 @@ const formatTime = (seconds) => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist, onDownload, isDownloaded, onStartRadio }) => {
+const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove, playlists, addToPlaylist, onDownload, isDownloaded }) => {
     const [showMenu, setShowMenu] = useState(false);
 
     // Add Start Radio support
@@ -117,7 +112,6 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
                                 playlists={playlists}
                                 onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
                                 onClose={() => setShowMenu(false)}
-                                onStartRadio={() => props.onStartRadio && props.onStartRadio(song)}
                             />
                         )}
                     </div>
@@ -128,7 +122,7 @@ const SongRow = ({ song, index, isCurrent, onPlay, isLiked, toggleLike, onRemove
     );
 };
 
-const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists, onDownload, onStartRadio }) => {
+const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists, onDownload }) => {
     const [showMenu, setShowMenu] = useState(false);
     return (
         <div
@@ -171,7 +165,6 @@ const SongCard = ({ song, onPlay, isLiked, toggleLike, addToPlaylist, playlists,
                             playlists={playlists}
                             onAdd={(id) => { addToPlaylist(id, song); alert("Added to Playlist!"); }}
                             onClose={() => setShowMenu(false)}
-                            onStartRadio={() => onStartRadio && onStartRadio(song)}
                         />
                     )}
                 </div>
@@ -200,8 +193,7 @@ const MainContent = ({
     onNavigate,
     downloads = [],
     onDownload,
-    onDeleteDownload,
-    onStartRadio
+    onDeleteDownload
 }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [searchTerm, setSearchTerm] = useState("");
@@ -299,7 +291,6 @@ const MainContent = ({
                                     playlists={playlists}
                                     onPlay={onPlay}
                                     onDownload={onDownload}
-                                    onStartRadio={onStartRadio}
                                 />
                             ))}
                         </div>
@@ -365,7 +356,6 @@ const MainContent = ({
                                     addToPlaylist={addToPlaylist}
                                     onDownload={onDownload}
                                     isDownloaded={downloads.some(d => d.id === song.id)}
-                                    onStartRadio={onStartRadio}
                                 />
                             ))}
                         </div>
@@ -514,7 +504,6 @@ const MainContent = ({
                                     playlists={playlists}
                                     onPlay={onPlay}
                                     onDownload={onDownload}
-                                    onStartRadio={onStartRadio}
                                 />
                             )) : (
                                 // Loading Skeletons

@@ -62,6 +62,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 pb-[calc(100px+env(safe-area-inset-bottom))] md:pb-2
+                short-viewport-pb
             `}>
                 {/* Nav Section */}
                 <div className="bg-transparent p-5 flex flex-col gap-5">
@@ -153,7 +154,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                                 <input
                                     ref={inputRef}
                                     type="text"
-                                    className="bg-transparent text-white text-sm font-semibold w-full outline-none placeholder-gray-500"
+                                    className="bg-transparent text-white text-sm font-semibold flex-1 min-w-0 outline-none placeholder-gray-500"
                                     placeholder="Name"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -213,7 +214,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                     </div>
                 </div>
 
-                <div className="px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide">
+                <div className="px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide short-viewport-hidden">
                     &copy; Vaani || By Deep Saha
                 </div>
             </div >

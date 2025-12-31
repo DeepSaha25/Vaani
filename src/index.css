@@ -79,3 +79,13 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* Mobile Keyboard Open / Short Viewport Optimizations */
+@media (max-height: 500px) {
+    .short-viewport-hidden {
+        display: none !important;
+    }
+    .short-viewport-pb {
+        padding-bottom: 1rem !important; /* Override large padding */
+    }
+}
