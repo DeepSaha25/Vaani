@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
 import FullScreenPlayer from './components/FullScreenPlayer';
-import AIPlaylistModal from './components/AIPlaylistModal';
+
 import DonateModal from './components/DonateModal';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { searchSongs, getTrendingSongs } from './api/music';
@@ -649,23 +649,7 @@ function App() {
         onPlayQueueSong={playSong}
       />
 
-      <AIPlaylistModal
-        isOpen={activeView === 'ai_playlist'}
-        onClose={() => navigateTo('home')}
-        onPlaylistGenerated={(prompt, songs) => {
-          // Create a pseudo-playlist
-          const playlistId = Date.now();
-          const newPlaylist = {
-            id: playlistId,
-            name: `AI: ${prompt.length > 20 ? prompt.substring(0, 20) + '...' : prompt}`,
-            songs: songs
-          };
-          setPlaylists(prev => [...prev, newPlaylist]);
 
-          // Navigate to it
-          navigateTo('playlist', playlistId);
-        }}
-      />
 
       {/* Donate Modal */}
       <DonateModal

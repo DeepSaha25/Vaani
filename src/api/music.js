@@ -81,42 +81,9 @@ export const fetchLrcLibLyrics = async (trackName, artistName, albumName, durati
     }
 };
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
-export const generateLyricsWithGemini = async (trackName, artistName, albumName) => {
-    try {
-        if (!import.meta.env.VITE_GEMINI_API_KEY) {
-            console.warn("Gemini API Key missing in environment variables.");
-            return null;
-        }
 
-        console.log(`Generating lyrics for ${trackName} via Gemini...`);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        
-        // Simpler prompt to avoid over-triggering safety filters
-        const prompt = `Return the lyrics for the song "${trackName}" by "${artistName}". Just the lyrics text. No intro/outro conversation.`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
-        // Block "I cannot" responses which indicate refusal
-        if (text.toLowerCase().includes("i cannot") || text.toLowerCase().includes("copyright")) {
-            console.warn("Gemini refused to generate lyrics due to safety/copyright.");
-            return null;
-        }
-        
-        // Simple heuristic: check if it looks like LRC
-        const isLrc = /\[\d{2}:\d{2}/.test(text);
-        return { text: text, source: 'gemini', type: isLrc ? 'lrc' : 'text' };
-    } catch (e) {
-        console.error("Gemini lyrics generation failed:", e);
-        return null;
-    }
-};
 
 // Restore client-side logic
 export const getLyrics = async (song) => {
@@ -139,11 +106,7 @@ export const getLyrics = async (song) => {
              return { text: lrcLibLyrics, source: 'lrclib', type: 'lrc' };
         }
 
-        // 3. Fallback: Gemini AI Generation
-        const geminiLyrics = await generateLyricsWithGemini(song.name, song.artist.split(',')[0], song.album);
-        if (geminiLyrics) {
-            return geminiLyrics;
-        }
+
 
         return null; // No lyrics found
     } catch (e) {
@@ -313,97 +276,4 @@ export const getTrendingSongs = async () => {
     }
 };
 
-export const generateSongRecommendations = async (userPrompt) => {
-    try {
-        if (!import.meta.env.VITE_GEMINI_API_KEY) {
-            console.warn("Gemini API Key missing.");
-            return [];
-        }
 
-        console.log(`Asking Gemini for playlist: "${userPrompt}"`);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        
-        const prompt = `
-            You are a music expert. Create a playlist of 15 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
-            
-            Return strictly a plain text list. One song per line.
-            Format: Title - Artist
-            Do not add numbering, JSON, bullets, or conversational filler.
-            
-            Example:
-            Tum Hi Ho - Arijit Singh
-            Shape of You - Ed Sheeran
-        `;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        console.log("Gemini Raw Response:", text);
-
-        // Robust Line Parsing
-        const lines = text.split('\n').filter(line => line.trim().length > 0 && line.includes('-'));
-        const songList = lines.map(line => {
-            const parts = line.split('-');
-            if (parts.length < 2) return null;
-            const title = parts[0].trim().replace(/^\d+\.\s*/, ''); // Remove numbering if present
-            const artist = parts.slice(1).join('-').trim(); // Join rest as artist
-            return { title, artist };
-        }).filter(s => s !== null && s.title);
-
-        if (songList.length === 0) {
-            console.error("Failed to parse song list from text:", text);
-            return [];
-        }
-
-        console.log("Parsed Songs:", songList);
-
-        // Process in batches of 4 to avoid rate limiting
-        const BATCH_SIZE = 4;
-        const validSongs = [];
-        const uniqueIds = new Set();
-
-        for (let i = 0; i < songList.length; i += BATCH_SIZE) {
-            const batch = songList.slice(i, i + BATCH_SIZE);
-            
-            const batchPromises = batch.map(async (item) => {
-                try {
-                    // Normalize text
-                    const query = `${item.title} ${item.artist}`.replace(/[^\w\s]/gi, ''); // Remove special chars for search
-                    
-                    // 1. Try "Song Name Artist Name"
-                    let results = await searchSongs(query);
-                    if (results?.length > 0) return results[0];
-
-                    // 2. Fallback: "Song Name" (more broad)
-                    results = await searchSongs(item.title);
-                    if (results?.length > 0) return results[0];
-
-                    return null;
-                } catch (err) {
-                    console.error(`Search failed for item ${JSON.stringify(item)}:`, err);
-                    return null;
-                }
-            });
-
-            const batchResults = await Promise.all(batchPromises);
-            
-            // Collect valid results from this batch
-            batchResults.forEach(song => {
-                if (song && !uniqueIds.has(song.id)) {
-                    uniqueIds.add(song.id);
-                    validSongs.push(song);
-                }
-            });
-
-            // Small delay between batches to be nice to the API
-            await new Promise(resolve => setTimeout(resolve, 300));
-        }
-        
-        return validSongs;
-
-    } catch (error) {
-        console.error("AI Playlist Generation failed:", error);
-        return [];
-    }
-};

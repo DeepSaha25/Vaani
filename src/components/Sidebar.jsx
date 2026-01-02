@@ -145,19 +145,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                             </div>
                         </div>
 
-                        {/* AI Playlist Item */}
-                        <div
-                            className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 hover:text-white group`}
-                            onClick={() => onNavigate('ai_playlist')}
-                        >
-                            <div className="w-6 h-6 flex items-center justify-center">
-                                <svg className="text-purple-400 group-hover:text-white transition-colors" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12L2.5 12"></path><path d="M12 12l4.5-8"></path></svg>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold text-white group-hover:text-purple-200 transition-colors">Magic Playlist</span>
-                                <span className="text-xs text-gray-400 group-hover:text-gray-200">Ask AI</span>
-                            </div>
-                        </div>
+
                     </div>
 
 
