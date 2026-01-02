@@ -335,16 +335,20 @@ export const generateSongRecommendations = async (userPrompt) => {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
-        // Cleanup markdown if present
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        
+        // Robust JSON extraction using regex
+        const jsonMatch = text.match(/\[.*\]/s);
+        if (!jsonMatch) {
+            console.error("No JSON array found in Gemini response:", text);
+            return [];
+        }
+
         let songList = [];
         try {
-            songList = JSON.parse(text);
+            songList = JSON.parse(jsonMatch[0]);
         } catch (e) {
-            console.error("Failed to parse Gemini JSON:", text);
+            console.error("Failed to parse extracted JSON:", jsonMatch[0]);
             return [];
         }
 
@@ -352,38 +356,27 @@ export const generateSongRecommendations = async (userPrompt) => {
 
         console.log("Gemini suggested:", songList);
 
-        // Fetch actual song data for each suggestion
-        // We run these in parallel but with a concurrency limit if needed. 
-        // For 10-15 songs, Promise.all might be okay, but let's be safe and use mapped search.
-        
         const searchPromises = songList.map(async (item) => {
             try {
-                // 1. Try Specific Search "Song Name Artist Name"
-                let query = `${item.title} ${item.artist}`;
-                let results = await searchSongs(query);
-                
-                if (results && results.length > 0) return results[0];
+                // 1. Try "Song Name Artist Name"
+                let results = await searchSongs(`${item.title} ${item.artist}`);
+                if (results?.length > 0) return results[0];
 
-                // 2. Fallback: Search just by Title
-                console.log(`Specific search failed for ${item.title}, trying generic...`);
+                // 2. Fallback: "Song Name" (more broad)
                 results = await searchSongs(item.title);
-                if (results && results.length > 0) {
-                     // Optional: You could filter to ensure artist match, but for now take best guess
-                     return results[0];
-                }
+                if (results?.length > 0) return results[0];
 
                 return null;
             } catch (err) {
+                console.error(`Search failed for ${item.title}:`, err);
                 return null;
             }
         });
 
         const foundSongs = await Promise.all(searchPromises);
         
-        // Filter out nulls (songs not found)
+        // Filter out nulls and duplicates
         const validSongs = foundSongs.filter(s => s !== null);
-        
-        // Remove duplicates
         const uniqueMap = new Map();
         validSongs.forEach(s => uniqueMap.set(s.id, s));
         

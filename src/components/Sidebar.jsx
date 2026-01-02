@@ -160,19 +160,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                         </div>
                     </div>
 
-                    {/* Donate Item */}
-                    <div
-                        className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 text-green-400 hover:text-green-300 hover:bg-green-500/10`}
-                        onClick={() => onNavigate('donate')}
-                    >
-                        <div className="w-6 h-6 flex items-center justify-center">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold">Donate</span>
-                            <span className="text-xs opacity-75">Support Us</span>
-                        </div>
-                    </div>
+
 
                     {/* Reference for new playlist input */}
                     {/* Reference for new playlist input */}
