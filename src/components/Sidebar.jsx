@@ -158,79 +158,94 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                                 <span className="text-xs text-gray-400 group-hover:text-gray-200">Ask AI</span>
                             </div>
                         </div>
-
-                        {/* Reference for new playlist input */}
-                        {/* Reference for new playlist input */}
-                        {isCreating && (
-                            <div className="flex items-center gap-2 p-2 rounded-md bg-white/5 mx-0 mb-1 border border-purple-500/50">
-                                <div className="w-8 h-8 flex items-center justify-center text-lg">🎵</div>
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    className="bg-transparent text-white text-sm font-semibold flex-1 min-w-0 outline-none placeholder-gray-500"
-                                    placeholder="Name"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            if (e.target.value.trim()) {
-                                                onCreatePlaylist(e.target.value.trim());
-                                                setIsCreating(false);
-                                            }
-                                        }
-                                        if (e.key === 'Escape') setIsCreating(false);
-                                    }}
-                                />
-                                <div className="flex gap-1">
-                                    <button
-                                        onMouseDown={(e) => {
-                                            e.preventDefault(); // Prevent blur
-                                            if (inputRef.current && inputRef.current.value.trim()) {
-                                                onCreatePlaylist(inputRef.current.value.trim());
-                                                setIsCreating(false);
-                                            }
-                                        }}
-                                        className="p-1.5 hover:bg-white/20 rounded-full text-green-400 transition"
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </button>
-                                    <button
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            setIsCreating(false);
-                                        }}
-                                        className="p-1.5 hover:bg-white/20 rounded-full text-red-400 transition"
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Playlists */}
-                        {playlists.map(pl => (
-                            <div
-                                key={pl.id}
-                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'playlist' && viewData === pl.id ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
-                                onClick={() => onNavigate('playlist', pl.id)}
-                            >
-                                <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xl shadow-sm">🎵</div>
-                                <div className="flex flex-col overflow-hidden">
-                                    <span className="text-sm font-semibold text-white truncate">{pl.name}</span>
-                                    <span className="text-xs truncate">Playlist • {pl.songs.length} songs</span>
-                                </div>
-                            </div>
-                        ))}
                     </div>
-                </div>
 
-                <div className="px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide short-viewport-hidden">
-                    &copy; Vaani || By Deep Saha
+                    {/* Donate Item */}
+                    <div
+                        className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 text-green-400 hover:text-green-300 hover:bg-green-500/10`}
+                        onClick={() => onNavigate('donate')}
+                    >
+                        <div className="w-6 h-6 flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold">Donate</span>
+                            <span className="text-xs opacity-75">Support Us</span>
+                        </div>
+                    </div>
+
+                    {/* Reference for new playlist input */}
+                    {/* Reference for new playlist input */}
+                    {isCreating && (
+                        <div className="flex items-center gap-2 p-2 rounded-md bg-white/5 mx-0 mb-1 border border-purple-500/50">
+                            <div className="w-8 h-8 flex items-center justify-center text-lg">🎵</div>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="bg-transparent text-white text-sm font-semibold flex-1 min-w-0 outline-none placeholder-gray-500"
+                                placeholder="Name"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        if (e.target.value.trim()) {
+                                            onCreatePlaylist(e.target.value.trim());
+                                            setIsCreating(false);
+                                        }
+                                    }
+                                    if (e.key === 'Escape') setIsCreating(false);
+                                }}
+                            />
+                            <div className="flex gap-1">
+                                <button
+                                    onMouseDown={(e) => {
+                                        e.preventDefault(); // Prevent blur
+                                        if (inputRef.current && inputRef.current.value.trim()) {
+                                            onCreatePlaylist(inputRef.current.value.trim());
+                                            setIsCreating(false);
+                                        }
+                                    }}
+                                    className="p-1.5 hover:bg-white/20 rounded-full text-green-400 transition"
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </button>
+                                <button
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        setIsCreating(false);
+                                    }}
+                                    className="p-1.5 hover:bg-white/20 rounded-full text-red-400 transition"
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Playlists */}
+                    {playlists.map(pl => (
+                        <div
+                            key={pl.id}
+                            className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition mb-1 ${activeView === 'playlist' && viewData === pl.id ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-[#b3b3b3]'}`}
+                            onClick={() => onNavigate('playlist', pl.id)}
+                        >
+                            <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xl shadow-sm">🎵</div>
+                            <div className="flex flex-col overflow-hidden">
+                                <span className="text-sm font-semibold text-white truncate">{pl.name}</span>
+                                <span className="text-xs truncate">Playlist • {pl.songs.length} songs</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            </div >
+            </div>
+
+            {/* Footer */}
+            <div className="px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide short-viewport-hidden">
+                &copy; Vaani || By Deep Saha
+            </div>
         </>
     );
 };

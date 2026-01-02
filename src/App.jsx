@@ -4,6 +4,8 @@ import MainContent from './components/MainContent';
 import Playbar from './components/Playbar';
 import FullScreenPlayer from './components/FullScreenPlayer';
 import AIPlaylistModal from './components/AIPlaylistModal';
+import DonateModal from './components/DonateModal';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { searchSongs, getTrendingSongs } from './api/music';
 import { saveSongToDB, getAllDownloadedSongs, deleteSongFromDB } from './utils/db';
 
@@ -647,7 +649,6 @@ function App() {
         onPlayQueueSong={playSong}
       />
 
-      {/* AI Playlist Modal - Loaded Lazily if needed but handled via simple state here */}
       <AIPlaylistModal
         isOpen={activeView === 'ai_playlist'}
         onClose={() => navigateTo('home')}
@@ -666,6 +667,13 @@ function App() {
         }}
       />
 
+      {/* Donate Modal */}
+      <DonateModal
+        isOpen={activeView === 'donate'}
+        onClose={() => navigateTo('home')}
+      />
+
+      <SpeedInsights />
     </div>
   );
 }
