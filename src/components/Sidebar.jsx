@@ -81,7 +81,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                         </div>
 
                         <div
-                            className={`flex items-center gap-4 text-sm font-semibold cursor-pointer transition p-2 rounded-md ${activeView === 'search' ? 'bg-white/10 text-white' : 'text-[#b3b3b3] hover:text-white hover:bg-white/5'}`}
+                            className={`hidden md:flex items-center gap-4 text-sm font-semibold cursor-pointer transition p-2 rounded-md ${activeView === 'search' ? 'bg-white/10 text-white' : 'text-[#b3b3b3] hover:text-white hover:bg-white/5'}`}
                             onClick={() => onNavigate('search')}
                         >
                             <SearchIcon active={activeView === 'search'} />
