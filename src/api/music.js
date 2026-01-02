@@ -324,20 +324,19 @@ export const generateSongRecommendations = async (userPrompt) => {
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         
         const prompt = `
-            You are a music expert. Create a playlist of 20 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
+            You are a music expert. Create a playlist of 15 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
             
-            Return strictly a JSON array of objects. Do not wrap in markdown code blocks. 
+            Return strictly a JSON array of objects. Do not wrap in markdown code blocks. Do not add any conversational text.
             Format: [{"title": "Song Name", "artist": "Artist Name"}]
             
             Focus on popular songs that are likely to be found in a music database.
-            Example: [{"title": "Tum Hi Ho", "artist": "Arijit Singh"}, {"title": "Shape of You", "artist": "Ed Sheeran"}]
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        // Robust JSON extraction using regex
+        // Robust JSON extraction
         const jsonMatch = text.match(/\[.*\]/s);
         if (!jsonMatch) {
             console.error("No JSON array found in Gemini response:", text);
@@ -356,31 +355,51 @@ export const generateSongRecommendations = async (userPrompt) => {
 
         console.log("Gemini suggested:", songList);
 
-        const searchPromises = songList.map(async (item) => {
-            try {
-                // 1. Try "Song Name Artist Name"
-                let results = await searchSongs(`${item.title} ${item.artist}`);
-                if (results?.length > 0) return results[0];
+        // Process in batches of 4 to avoid rate limiting
+        const BATCH_SIZE = 4;
+        const validSongs = [];
+        const uniqueIds = new Set();
 
-                // 2. Fallback: "Song Name" (more broad)
-                results = await searchSongs(item.title);
-                if (results?.length > 0) return results[0];
+        for (let i = 0; i < songList.length; i += BATCH_SIZE) {
+            const batch = songList.slice(i, i + BATCH_SIZE);
+            
+            const batchPromises = batch.map(async (item) => {
+                try {
+                    const title = item.title || item.name || item.Song || "";
+                    const artist = item.artist || item.singer || item.Artist || "";
 
-                return null;
-            } catch (err) {
-                console.error(`Search failed for ${item.title}:`, err);
-                return null;
-            }
-        });
+                    if (!title) return null;
 
-        const foundSongs = await Promise.all(searchPromises);
+                    // 1. Try "Song Name Artist Name"
+                    let results = await searchSongs(`${title} ${artist}`);
+                    if (results?.length > 0) return results[0];
+
+                    // 2. Fallback: "Song Name" (more broad)
+                    results = await searchSongs(title);
+                    if (results?.length > 0) return results[0];
+
+                    return null;
+                } catch (err) {
+                    console.error(`Search failed for item ${JSON.stringify(item)}:`, err);
+                    return null;
+                }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            
+            // Collect valid results from this batch
+            batchResults.forEach(song => {
+                if (song && !uniqueIds.has(song.id)) {
+                    uniqueIds.add(song.id);
+                    validSongs.push(song);
+                }
+            });
+
+            // Small delay between batches to be nice to the API
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
         
-        // Filter out nulls and duplicates
-        const validSongs = foundSongs.filter(s => s !== null);
-        const uniqueMap = new Map();
-        validSongs.forEach(s => uniqueMap.set(s.id, s));
-        
-        return Array.from(uniqueMap.values());
+        return validSongs;
 
     } catch (error) {
         console.error("AI Playlist Generation failed:", error);
