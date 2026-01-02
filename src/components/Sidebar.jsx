@@ -61,7 +61,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                 fixed md:static inset-y-0 left-0 z-[60] w-[280px] md:w-[300px] h-full md:h-auto glass-panel p-2 pt-[calc(1rem+env(safe-area-inset-top))] flex flex-col gap-2 rounded-r-xl md:rounded-xl m-0 md:m-2
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                pb-[calc(100px+env(safe-area-inset-bottom))] md:pb-2
+                pb-[calc(20px+env(safe-area-inset-bottom))] md:pb-2
                 short-viewport-pb
             `}>
                 {/* Nav Section */}
