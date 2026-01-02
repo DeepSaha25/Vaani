@@ -312,3 +312,76 @@ export const getTrendingSongs = async () => {
         return [];
     }
 };
+
+export const generateSongRecommendations = async (userPrompt) => {
+    try {
+        if (!import.meta.env.VITE_GEMINI_API_KEY) {
+            console.warn("Gemini API Key missing.");
+            return [];
+        }
+
+        console.log(`Asking Gemini for playlist: "${userPrompt}"`);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        
+        const prompt = `
+            You are a music expert. Create a playlist of 10-15 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
+            
+            Return strictly a JSON array of objects. Do not wrap in markdown code blocks. 
+            Format: [{"title": "Song Name", "artist": "Artist Name"}]
+            
+            Focus on popular songs that are likely to be found in a music database.
+            Example: [{"title": "Tum Hi Ho", "artist": "Arijit Singh"}, {"title": "Shape of You", "artist": "Ed Sheeran"}]
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Cleanup markdown if present
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        let songList = [];
+        try {
+            songList = JSON.parse(text);
+        } catch (e) {
+            console.error("Failed to parse Gemini JSON:", text);
+            return [];
+        }
+
+        if (!Array.isArray(songList) || songList.length === 0) return [];
+
+        console.log("Gemini suggested:", songList);
+
+        // Fetch actual song data for each suggestion
+        // We run these in parallel but with a concurrency limit if needed. 
+        // For 10-15 songs, Promise.all might be okay, but let's be safe and use mapped search.
+        
+        const searchPromises = songList.map(async (item) => {
+            try {
+                // Search for "Song Name Artist Name" for best accuracy
+                const query = `${item.title} ${item.artist}`;
+                const results = await searchSongs(query);
+                
+                // Return the first match if available
+                return results && results.length > 0 ? results[0] : null;
+            } catch (err) {
+                return null;
+            }
+        });
+
+        const foundSongs = await Promise.all(searchPromises);
+        
+        // Filter out nulls (songs not found)
+        const validSongs = foundSongs.filter(s => s !== null);
+        
+        // Remove duplicates
+        const uniqueMap = new Map();
+        validSongs.forEach(s => uniqueMap.set(s.id, s));
+        
+        return Array.from(uniqueMap.values());
+
+    } catch (error) {
+        console.error("AI Playlist Generation failed:", error);
+        return [];
+    }
+};
