@@ -248,18 +248,65 @@ export const searchSongs = async (query) => {
 
 export const getTrendingSongs = async () => {
     try {
-        // Fetch "Now Trending" Playlist (ID: 47599074)
-        // This provides proper trending songs with full details (no 2-step needed)
-        const response = await fetch(`${BASE_URL}/playlists?id=47599074`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        // Diverse set of playlists to ensure variety:
+        // Now Trending, Top 50 Hindi, Top 50 Punjabi, Top 50 English, Hits, Viral, Romance, Dance
+        const PLAYLIST_IDS = [
+            "47599074",  
+            "1134543272", 
+            "1134543511", 
+            "1134595537", 
+            "3379491",    
+            "1167751266", 
+            "802336660",  
+            "154546814"   
+        ];
 
-        const data = await response.json();
+        // Strategy: Always fetch 'Now Trending' + 2 random other playlists
+        const otherIds = PLAYLIST_IDS.filter(id => id !== "47599074")
+                                     .sort(() => 0.5 - Math.random())
+                                     .slice(0, 2);
         
-        // Playlist endpoint structure: data.data.songs = [ { ... }, ... ]
-        if (data.success && data.data && data.data.songs) {
-            return data.data.songs.map(transformSong);
+        const targetIds = ["47599074", ...otherIds];
+
+        const promises = targetIds.map(id => 
+            fetch(`${BASE_URL}/playlists?id=${id}`)
+                .then(res => res.ok ? res.json() : null)
+                .catch(err => null)
+        );
+
+        const results = await Promise.all(promises);
+
+        let allSongs = [];
+        results.forEach(data => {
+            if (data && data.success && data.data && data.data.songs) {
+                // Some playlists return huge lists, limit each contribution to 20 to avoid one dominating
+                const songs = data.data.songs.slice(0, 20); 
+                allSongs = [...allSongs, ...songs];
+            }
+        });
+
+        if (allSongs.length === 0) return [];
+
+        // Deduplicate songs based on ID
+        const uniqueSongsMap = new Map();
+        allSongs.forEach(song => {
+            if (!uniqueSongsMap.has(song.id)) {
+                uniqueSongsMap.set(song.id, song);
+            }
+        });
+        
+        const uniqueSongs = Array.from(uniqueSongsMap.values());
+
+        // Transform and Shuffle final list
+        const transformed = uniqueSongs.map(transformSong);
+        
+        // Fisher-Yates shuffle for better randomness than sort()
+        for (let i = transformed.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [transformed[i], transformed[j]] = [transformed[j], transformed[i]];
         }
-        return [];
+
+        return transformed;
     } catch (error) {
         console.error("Failed to fetch trending songs:", error);
         return [];
