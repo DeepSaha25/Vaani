@@ -230,7 +230,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeView, viewData, playlists,
                 </div>
                 {/* Footer */}
                 {/* Footer */}
-                <div className="mt-auto px-2 pb-3 md:pb-0 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide short-viewport-hidden">
+                <div className="mt-auto px-2 pb-1 text-[15px] text-[#b3b3b3] text-center opacity-80 font-medium tracking-wide short-viewport-hidden">
                     &copy; Vaani || By Deep Saha
                 </div>
             </div>
