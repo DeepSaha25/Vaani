@@ -324,7 +324,7 @@ export const generateSongRecommendations = async (userPrompt) => {
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         
         const prompt = `
-            You are a music expert. Create a playlist of 10-15 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
+            You are a music expert. Create a playlist of 20 Indian/Bollywood or International songs based on this mood/request: "${userPrompt}".
             
             Return strictly a JSON array of objects. Do not wrap in markdown code blocks. 
             Format: [{"title": "Song Name", "artist": "Artist Name"}]
@@ -358,12 +358,21 @@ export const generateSongRecommendations = async (userPrompt) => {
         
         const searchPromises = songList.map(async (item) => {
             try {
-                // Search for "Song Name Artist Name" for best accuracy
-                const query = `${item.title} ${item.artist}`;
-                const results = await searchSongs(query);
+                // 1. Try Specific Search "Song Name Artist Name"
+                let query = `${item.title} ${item.artist}`;
+                let results = await searchSongs(query);
                 
-                // Return the first match if available
-                return results && results.length > 0 ? results[0] : null;
+                if (results && results.length > 0) return results[0];
+
+                // 2. Fallback: Search just by Title
+                console.log(`Specific search failed for ${item.title}, trying generic...`);
+                results = await searchSongs(item.title);
+                if (results && results.length > 0) {
+                     // Optional: You could filter to ensure artist match, but for now take best guess
+                     return results[0];
+                }
+
+                return null;
             } catch (err) {
                 return null;
             }
