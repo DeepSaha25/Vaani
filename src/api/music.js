@@ -224,10 +224,10 @@ export const getTrendingSongs = async () => {
             "154546814"   
         ];
 
-        // Strategy: Always fetch 'Now Trending' + 2 random other playlists
+        // Strategy: Always fetch 'Now Trending' + 4 random other playlists (increased from 2)
         const otherIds = PLAYLIST_IDS.filter(id => id !== "47599074")
                                      .sort(() => 0.5 - Math.random())
-                                     .slice(0, 2);
+                                     .slice(0, 4);
         
         const targetIds = ["47599074", ...otherIds];
 
@@ -242,8 +242,8 @@ export const getTrendingSongs = async () => {
         let allSongs = [];
         results.forEach(data => {
             if (data && data.success && data.data && data.data.songs) {
-                // Some playlists return huge lists, limit each contribution to 20 to avoid one dominating
-                const songs = data.data.songs.slice(0, 20); 
+                // Some playlists return huge lists, limit each contribution to 40 to avoid one dominating
+                const songs = data.data.songs.slice(0, 40); 
                 allSongs = [...allSongs, ...songs];
             }
         });
@@ -272,6 +272,22 @@ export const getTrendingSongs = async () => {
         return transformed;
     } catch (error) {
         console.error("Failed to fetch trending songs:", error);
+        return [];
+    }
+};
+
+export const getPlaylistSongs = async (playlistId) => {
+    try {
+        const response = await fetch(`${BASE_URL}/playlists?id=${playlistId}`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.songs) {
+            return data.data.songs.map(transformSong);
+        }
+        return [];
+    } catch (e) {
+        console.error(`Error fetching playlist ${playlistId}:`, e);
         return [];
     }
 };

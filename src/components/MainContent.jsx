@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GENRES, getSongsByGenre } from '../api/genres';
+import { GENRES } from '../api/genres';
+import { getPlaylistSongs } from '../api/music';
 // Local imports removed (now in App)
 
 // Icons
@@ -197,6 +198,8 @@ const MainContent = ({
 }) => {
     const [greeting, setGreeting] = useState("Good morning");
     const [searchTerm, setSearchTerm] = useState("");
+    const [genreSongs, setGenreSongs] = useState([]);
+    const [isLoadingGenre, setIsLoadingGenre] = useState(false);
 
     // removed local downloads state and handlers
 
@@ -325,9 +328,23 @@ const MainContent = ({
         }
 
         // --- GENRE SONGS VIEW ---
+        // --- GENRE SONGS VIEW ---
         if (activeView === 'genre_songs') {
             const genre = GENRES.find(g => g.id === viewData);
-            const songs = getSongsByGenre(viewData, trendingSongs); // Assuming trendingSongs for filtering
+
+            // Fetch logic
+            useEffect(() => {
+                if (activeView === 'genre_songs' && genre?.playlistId) {
+                    setIsLoadingGenre(true);
+                    getPlaylistSongs(genre.playlistId).then(songs => {
+                        setGenreSongs(songs);
+                        setIsLoadingGenre(false);
+                    });
+                } else {
+                    // Fallback or empty if no ID
+                    setGenreSongs([]);
+                }
+            }, [activeView, viewData]);
 
             return (
                 <div className="p-6 pt-0 animate-fade-in">
@@ -338,26 +355,40 @@ const MainContent = ({
                         <div className="text-center md:text-left">
                             <p className="uppercase text-xs font-bold tracking-widest mb-2 text-white/70">Genre</p>
                             <h1 className="text-4xl md:text-7xl font-black mb-4 tracking-tighter drop-shadow-2xl">{genre?.name}</h1>
+                            <p className="text-gray-300 text-sm font-medium opacity-80">{genreSongs.length} songs</p>
                         </div>
                     </div>
 
                     <div className="min-h-[300px] bg-black/20 backdrop-blur-sm -mx-6 px-8 py-6 rounded-3xl mt-4">
+                        {/* Play All Button */}
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="w-14 h-14 bg-[#a855f7] rounded-full flex items-center justify-center hover:scale-110 hover:bg-[#b06bf7] transition-all cursor-pointer shadow-lg shadow-purple-900/50 text-black active:scale-95"
+                                onClick={() => genreSongs.length > 0 && onPlay(genreSongs[0], genreSongs)}>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                            </div>
+                        </div>
+
                         <div className="flex flex-col gap-1">
-                            {songs.map((song, i) => (
-                                <SongRow
-                                    key={song.id || i}
-                                    song={song}
-                                    index={i}
-                                    isCurrent={currentSong?.id === song.id}
-                                    onPlay={() => onPlay(song, songs)}
-                                    isLiked={likedSongs.some(s => s.id === song.id)}
-                                    toggleLike={toggleLike}
-                                    playlists={playlists}
-                                    addToPlaylist={addToPlaylist}
-                                    onDownload={onDownload}
-                                    isDownloaded={downloads.some(d => d.id === song.id)}
-                                />
-                            ))}
+                            {isLoadingGenre ? (
+                                <div className="text-center text-gray-500 py-10">Loading songs...</div>
+                            ) : (
+                                genreSongs.map((song, i) => (
+                                    <SongRow
+                                        key={song.id || i}
+                                        song={song}
+                                        index={i}
+                                        isCurrent={currentSong?.id === song.id}
+                                        onPlay={() => onPlay(song, genreSongs)}
+                                        isLiked={likedSongs.some(s => s.id === song.id)}
+                                        toggleLike={toggleLike}
+                                        playlists={playlists}
+                                        addToPlaylist={addToPlaylist}
+                                        onDownload={onDownload}
+                                        isDownloaded={downloads.some(d => d.id === song.id)}
+                                    />
+                                ))
+                            )}
+                            {genreSongs.length === 0 && !isLoadingGenre && <p className="text-gray-500 italic mt-12 text-center text-lg">No songs found.</p>}
                         </div>
                     </div>
                 </div>
@@ -492,7 +523,16 @@ const MainContent = ({
                 {/* CASE 1: New User (No History) -> Show Trending as MAIN GRID to fill space */}
                 {!recentlyPlayed.length && (
                     <div className="flex-1 animate-slide-up">
-                        <h2 className="text-2xl font-bold mb-6 text-white/90">Trending Now</h2>
+                        <div className="flex items-center gap-4 mb-6">
+                            <h2 className="text-2xl font-bold text-white/90">Trending Now</h2>
+                            <button
+                                onClick={() => trendingSongs.length > 0 && onPlay(trendingSongs[0], trendingSongs)}
+                                className="w-10 h-10 bg-[#a855f7] rounded-full flex items-center justify-center hover:scale-110 hover:bg-[#b06bf7] transition-all cursor-pointer shadow-lg shadow-purple-900/50 text-black active:scale-95"
+                                title="Play All Trending"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                            </button>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {trendingSongs.length > 0 ? trendingSongs.map((song, i) => (
                                 <SongCard
@@ -537,7 +577,16 @@ const MainContent = ({
                         </section>
 
                         <section className="animate-slide-up" style={{ animationDelay: '200ms' }}>
-                            <h2 className="text-2xl font-bold mb-6 text-white/90">Trending Now</h2>
+                            <div className="flex items-center gap-4 mb-6">
+                                <h2 className="text-2xl font-bold text-white/90">Trending Now</h2>
+                                <button
+                                    onClick={() => trendingSongs.length > 0 && onPlay(trendingSongs[0], trendingSongs)}
+                                    className="w-10 h-10 bg-[#a855f7] rounded-full flex items-center justify-center hover:scale-110 hover:bg-[#b06bf7] transition-all cursor-pointer shadow-lg shadow-purple-900/50 text-black active:scale-95"
+                                    title="Play All Trending"
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                                </button>
+                            </div>
                             <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6">
                                 {trendingSongs.length > 0 ? trendingSongs.map((song, i) => (
                                     <SongCard
