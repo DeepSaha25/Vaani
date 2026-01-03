@@ -42,7 +42,8 @@ const transformSong = (item) => {
         album: item.album ? item.album.name : "Single",
         duration: item.duration,
         isApiSong: true,
-        hasLyrics: hasLyrics
+        hasLyrics: hasLyrics,
+        year: item.year ? parseInt(item.year) : 0
     };
 };
 
@@ -260,9 +261,12 @@ export const getTrendingSongs = async () => {
         
         const uniqueSongs = Array.from(uniqueSongsMap.values());
 
-        // Transform and Shuffle final list
-        const transformed = uniqueSongs.map(transformSong);
+        // Transform, Filter, and Shuffle final list
+        let transformed = uniqueSongs.map(transformSong);
         
+        // FILTER: Only latest songs (2022 and later)
+        transformed = transformed.filter(song => song.year >= 2022);
+
         // Fisher-Yates shuffle for better randomness than sort()
         for (let i = transformed.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));

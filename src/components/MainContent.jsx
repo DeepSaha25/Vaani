@@ -225,6 +225,22 @@ const MainContent = ({
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
+    // Moved from renderContent to fix conditional hook error
+    useEffect(() => {
+        if (activeView === 'genre_songs') {
+            const genre = GENRES.find(g => g.id === viewData);
+            if (genre?.playlistId) {
+                setIsLoadingGenre(true);
+                getPlaylistSongs(genre.playlistId).then(songs => {
+                    setGenreSongs(songs);
+                    setIsLoadingGenre(false);
+                });
+            } else {
+                setGenreSongs([]);
+            }
+        }
+    }, [activeView, viewData]);
+
 
     const renderHeader = () => (
         <div className="header sticky top-0 z-20 glass-header px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center h-[calc(72px+env(safe-area-inset-top))] gap-6 transition-all duration-300">
@@ -331,20 +347,6 @@ const MainContent = ({
         // --- GENRE SONGS VIEW ---
         if (activeView === 'genre_songs') {
             const genre = GENRES.find(g => g.id === viewData);
-
-            // Fetch logic
-            useEffect(() => {
-                if (activeView === 'genre_songs' && genre?.playlistId) {
-                    setIsLoadingGenre(true);
-                    getPlaylistSongs(genre.playlistId).then(songs => {
-                        setGenreSongs(songs);
-                        setIsLoadingGenre(false);
-                    });
-                } else {
-                    // Fallback or empty if no ID
-                    setGenreSongs([]);
-                }
-            }, [activeView, viewData]);
 
             return (
                 <div className="p-6 pt-0 animate-fade-in">
